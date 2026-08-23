@@ -1,15 +1,15 @@
 services:
   db:
-    image: mariadb
+    image: mysql:lts
     container_name: edb-db
-    restart: always
+    restart: unless-stopped
     environment:
-      MARIADB_ROOT_PASSWORD: 'edb-root-pwd'
-      MARIADB_USER: 'edb'
-      MARIADB_PASSSWORD: 'edb-password'
-      MARIADB_DATABASE: 'edb'
+      MYSQL_ROOT_PASSWORD: 'edb-root-pwd'
+      MYSQL_USER: 'edb'
+      MYSQL_PASSSWORD: 'edb-password'
+      MYSQL_DATABASE: 'edb'
     ports:
-      - 3306:3306
+      - 127.0.0.1:3306:3306
     volumes:
       - edb-db:/var/lib/mysql
     healthcheck:
@@ -20,9 +20,9 @@ services:
   adminer:
     image: adminer
     container_name: edb-adminer
-    restart: always
+    restart: unless-stopped
     ports:
-      - 8001:8080
+      - 127.0.0.1:8001:8080
 
 volumes:
   edb-db:
