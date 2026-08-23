@@ -1,0 +1,28 @@
+services:
+  db:
+    image: mariadb
+    container_name: edb-db
+    restart: always
+    environment:
+      MARIADB_ROOT_PASSWORD: 'edb-root-pwd'
+      MARIADB_USER: 'edb'
+      MARIADB_PASSSWORD: 'edb-password'
+      MARIADB_DATABASE: 'edb'
+    ports:
+      - 3306:3306
+    volumes:
+      - edb-db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  adminer:
+    image: adminer
+    container_name: edb-adminer
+    restart: always
+    ports:
+      - 8001:8080
+
+volumes:
+  edb-db:
