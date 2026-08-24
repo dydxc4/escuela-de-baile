@@ -48,7 +48,7 @@ class Estudiante(Persona):
 
     telefono = models.CharField(max_length=20, null=True, blank=True, validators=[phone_number_validator])
     curp = models.CharField(max_length=18, unique=True)
-    fecha_nacimiento = models.DateTimeField()
+    fecha_nacimiento = models.DateField()
     genero = EnumField(Genero, null=True)
     estado_inscripcion = EnumField(Estado, default=Estado.ACTIVO)
     posee_tarjeta_asistencia = models.BooleanField()
