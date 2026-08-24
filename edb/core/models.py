@@ -1,7 +1,9 @@
 from django.db import models
-from django.core.validators import MinValueValidator
+from django.core.validators import FileExtensionValidator
 from django_enum import EnumField
-from .validators import phone_number_validator, price_validator
+from .validators import *
+from .utils import generate_uuid_filename
+from edb.settings import UPLOAD_ALLOWED_EXTENSIONS
 
 # Create your models here.
 
@@ -19,7 +21,6 @@ class Salario(models.Model):
 
     def __str__(self) -> str:
         return f'{self.concepto}: ${self.monto}'
-
 
 class Persona(models.Model):
     nombre = models.CharField(max_length=80)
@@ -181,3 +182,21 @@ class PagoInstructor(models.Model):
 
     def __str__(self) -> str:
         return f'{self.instructor} - {self.fecha_registro}: ${self.monto}'
+
+class Documento(models.Model):
+    estudiante = models.ForeignKey(Estudiante, on_delete=models.CASCADE, null=True, blank=True)
+    instructor = models.ForeignKey(Instructor, on_delete=models.CASCADE, null=True, blank=True)
+    pago = models.ForeignKey(PagoEstudiante, on_delete=models.CASCADE, null=True, blank=True)
+    tipo = models.ForeignKey(TipoDocumento, on_delete=models.RESTRICT, null=True, blank=True)
+    archivo = models.FileField(
+        upload_to=generate_uuid_filename,
+        validators=[
+            FileExtensionValidator(allowed_extensions=UPLOAD_ALLOWED_EXTENSIONS),
+            validate_file_size
+        ]
+    )
+    notas = models.TextField(max_length=120, null=True, blank=True)
+    fecha_subida = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self) -> str:
+        return f'Documento #{self.pk}: {self.archivo.name} ({self.fecha_subida})'

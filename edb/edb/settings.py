@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -118,6 +119,12 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
+
+MAX_UPLOAD_FILE_SIZE_MB = 5
+MAX_UPLOAD_FILE_SIZE_BYTES = MAX_UPLOAD_FILE_SIZE_MB*1024**2
+UPLOAD_ALLOWED_EXTENSIONS = ['pdf', 'docx', 'doc', 'odt', 'txt', 'pdf', 'jpg', 'jpeg', 'png']
+MEDIA_ROOT = os.path.join(BASE_DIR, 'documents')
+MEDIA_URL = '/documents/'
 
 
 # Static files (CSS, JavaScript, Images)
