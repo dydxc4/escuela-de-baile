@@ -12,8 +12,8 @@ Este es el repositorio para el proyecto de servidor API rest usando Django REST 
 
 **Pasos:**
 
-1. Clonar este repositorio `git clone https://github.com/dydxc4/edb.git`.
-2. Inicializar un nuevo entorno virtual de Python en el directorio raíz del proyecto `python -m venv .venv` (usar `py` en Windows). Habilitar con `source .venv/bin/activate`.
+1. Clonar este repositorio `git clone https://github.com/dydxc4/escuela-de-baile.git`.
+2. Inicializar un nuevo entorno virtual de Python en el directorio raíz del proyecto `python -m venv .venv` (usar `py` en Windows). Habilitar con `source .venv/bin/activate` o `.venv\Scripts\Activate.bat` en Windows.
 3. Instalar dependencias `pip install -r requirements.txt`.
 4. Orquestar servicios con Docker `docker compose up -d`.
 6. Aplicar migraciones con `python manage.py migrate` (dentro del directorio `edb`).
