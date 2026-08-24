@@ -33,7 +33,12 @@ class Persona(models.Model):
         abstract = True
 
     def __str__(self) -> str:
-        return f'{self.nombre} {self.apellido_paterno} {self.apellido_materno}'.strip()
+        nombre_completo = f'{self.nombre} {self.apellido_paterno}'
+
+        if self.apellido_materno is not None:
+            nombre_completo += f' {self.apellido_materno}'
+
+        return nombre_completo.strip()
 
 class Estudiante(Persona):
     class Genero(models.TextChoices):
@@ -84,7 +89,7 @@ class TutorEstudiante(models.Model):
         ]
 
     def __str__(self) -> str:
-        return f'{self.estudiante} {self.parentesco} de {self.tutor}'
+        return f'{self.tutor} {self.parentesco.label.lower()} de {self.estudiante}'
 
 class Curso(models.Model):
     nombre = models.CharField(max_length=80)
