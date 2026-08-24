@@ -54,7 +54,7 @@ class Estudiante(Persona):
     telefono = models.CharField(max_length=20, null=True, blank=True, validators=[phone_number_validator])
     curp = models.CharField(max_length=18, unique=True)
     fecha_nacimiento = models.DateField()
-    genero = EnumField(Genero, null=True)
+    genero = EnumField(Genero, null=True, blank=True)
     estado_inscripcion = EnumField(Estado, default=Estado.ACTIVO)
     posee_tarjeta_asistencia = models.BooleanField()
 
@@ -119,26 +119,12 @@ class Clase(models.Model):
     instructor = models.ForeignKey(Instructor, related_name='clases', on_delete=models.RESTRICT)
     fecha_hora = models.DateTimeField()
     duracion = models.DurationField()
+    descripcion = models.CharField(max_length=120, null=True, blank=True)
     estado = EnumField(Estado, default=Estado.PENDIENTE)
-    estudiantes = models.ManyToManyField(Estudiante, related_name='clases', through='ClaseEstudiante')
+    estudiantes = models.ManyToManyField(Estudiante, related_name='clases')
 
     def __str__(self) -> str:
         return f'{self.periodo} - Clase {self.fecha_hora} [{self.estado}]'
-
-class ClaseEstudiante(models.Model):
-    clase = models.ForeignKey(Clase, related_name='estudiantes_clase', on_delete=models.CASCADE)
-    estudiante = models.ForeignKey(Estudiante, related_name='clases_estudiante', on_delete=models.RESTRICT)
-    fecha_registro = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=['clase', 'estudiante'], name='unique_clase_estudiante'
-            )
-        ]
-
-    def __str__(self) -> str:
-        return f'{self.estudiante} - {self.clase}'
 
 class Cuota(models.Model):
     class Tipo(models.TextChoices):
