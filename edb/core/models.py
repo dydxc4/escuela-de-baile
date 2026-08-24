@@ -121,7 +121,7 @@ class Clase(models.Model):
     duracion = models.DurationField()
     descripcion = models.CharField(max_length=120, null=True, blank=True)
     estado = EnumField(Estado, default=Estado.PENDIENTE)
-    estudiantes = models.ManyToManyField(Estudiante, related_name='clases', null=True, blank=True)
+    estudiantes = models.ManyToManyField(Estudiante, related_name='clases', blank=True)
 
     def __str__(self) -> str:
         return f'{self.periodo} - Clase {self.fecha_hora} [{self.estado}]'
@@ -133,7 +133,7 @@ class Cuota(models.Model):
         CLASE_INDIVIDUAL = 'CLASE_INDIVIDUAL', 'Clase individual'
         PAQUETE_CLASES = 'PAQUETE_CLASES', 'Paquete de clases'
 
-    periodo = models.ForeignKey(Periodo, related_name='cuotas', on_delete=models.CASCADE)
+    periodo = models.ForeignKey(Periodo, related_name='cuotas', on_delete=models.CASCADE, null=True)
     tipo = EnumField(Tipo)
     concepto = models.CharField(max_length=120, unique=True)
     costo = models.DecimalField(max_digits=8, decimal_places=2, validators=[price_validator])
@@ -141,7 +141,7 @@ class Cuota(models.Model):
     fecha_registro = models.DateTimeField(auto_now_add=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
     esta_habilitado = models.BooleanField(default=True)
-    clases = models.ManyToManyField(Clase, related_name='cuotas', null=True, blank=True)
+    clases = models.ManyToManyField(Clase, related_name='cuotas', blank=True)
 
     def __str__(self) -> str:
         return f'{self.concepto}: ${self.costo}'
