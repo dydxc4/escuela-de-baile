@@ -60,10 +60,10 @@ class Estudiante(Persona):
 
 class Tutor(Persona):
     telefono = models.CharField(max_length=20, validators=[phone_number_validator])
-    estudiantes = models.ManyToManyField(Estudiante, through='TutorEstudiante')
+    estudiantes = models.ManyToManyField(Estudiante, related_name='tutores', through='TutorEstudiante')
 
 class Instructor(Persona):
-    salario = models.ForeignKey(Salario, on_delete=models.RESTRICT)
+    salario = models.ForeignKey(Salario, related_name='instructores', on_delete=models.RESTRICT)
     telefono = models.CharField(max_length=20, unique=True, validators=[phone_number_validator])
     correo_electronico = models.EmailField(unique=True)
     esta_habilitado = models.BooleanField(default=True)
@@ -77,8 +77,8 @@ class TutorEstudiante(models.Model):
         ABUELO = 'ABUELO', 'Abuelo/a'
         TUTOR_LEGAL = 'TUTOR_LEGAL', 'Tutor legal'
 
-    tutor = models.ForeignKey(Tutor, on_delete=models.RESTRICT)
-    estudiante = models.ForeignKey(Estudiante, on_delete=models.RESTRICT)
+    tutor = models.ForeignKey(Tutor, related_name='estudiantes_tutor', on_delete=models.RESTRICT)
+    estudiante = models.ForeignKey(Estudiante, related_name='tutores_estudiante', on_delete=models.RESTRICT)
     parentesco = EnumField(Parentesco)
 
     class Meta:
@@ -101,7 +101,7 @@ class Curso(models.Model):
         return self.nombre
 
 class Periodo(models.Model):
-    curso = models.ForeignKey(Curso, on_delete=models.RESTRICT)
+    curso = models.ForeignKey(Curso, related_name='periodos', on_delete=models.RESTRICT)
     fecha_inicio = models.DateField()
     fecha_finalizacion = models.DateField()
 
@@ -115,19 +115,19 @@ class Clase(models.Model):
         APLAZADA = 'APLAZADA', 'Aplazada'
         COMPLETADA = 'COMPLETADA', 'Completada'
 
-    periodo = models.ForeignKey(Periodo, on_delete=models.RESTRICT)
-    instructor = models.ForeignKey(Instructor, on_delete=models.RESTRICT)
+    periodo = models.ForeignKey(Periodo, related_name='clases', on_delete=models.RESTRICT)
+    instructor = models.ForeignKey(Instructor, related_name='clases', on_delete=models.RESTRICT)
     fecha_hora = models.DateTimeField()
     duracion = models.DurationField()
     estado = EnumField(Estado, default=Estado.PENDIENTE)
-    estudiantes = models.ManyToManyField(Estudiante, through='ClaseEstudiante')
+    estudiantes = models.ManyToManyField(Estudiante, related_name='clases', through='ClaseEstudiante')
 
     def __str__(self) -> str:
         return f'{self.periodo} - Clase {self.fecha_hora} [{self.estado}]'
 
 class ClaseEstudiante(models.Model):
-    clase = models.ForeignKey(Clase, on_delete=models.CASCADE)
-    estudiante = models.ForeignKey(Estudiante, on_delete=models.RESTRICT)
+    clase = models.ForeignKey(Clase, related_name='estudiantes_clase', on_delete=models.CASCADE)
+    estudiante = models.ForeignKey(Estudiante, related_name='clases_estudiante', on_delete=models.RESTRICT)
     fecha_registro = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -147,7 +147,7 @@ class Cuota(models.Model):
         CLASE_INDIVIDUAL = 'CLASE_INDIVIDUAL', 'Clase individual'
         PAQUETE_CLASES = 'PAQUETE_CLASES', 'Paquete de clases'
 
-    periodo = models.ForeignKey(Periodo, on_delete=models.CASCADE)
+    periodo = models.ForeignKey(Periodo, related_name='cuotas', on_delete=models.CASCADE)
     tipo = EnumField(Tipo)
     concepto = models.CharField(max_length=120, unique=True)
     costo = models.DecimalField(max_digits=8, decimal_places=2, validators=[price_validator])
@@ -155,7 +155,7 @@ class Cuota(models.Model):
     fecha_registro = models.DateTimeField(auto_now_add=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
     esta_habilitado = models.BooleanField(default=True)
-    clases = models.ManyToManyField(Clase)
+    clases = models.ManyToManyField(Clase, related_name='cuotas')
 
     def __str__(self) -> str:
         return f'{self.concepto}: ${self.costo}'
@@ -168,19 +168,19 @@ class PagoEstudiante(models.Model):
         CANCELADO = 'CANCELADO', 'Cancelado'
         DEVUELTO = 'DEVUELTO', 'Devuelto'
 
-    estudiante = models.ForeignKey(Estudiante, on_delete=models.RESTRICT)
+    estudiante = models.ForeignKey(Estudiante, related_name='pagos', on_delete=models.RESTRICT)
     fecha_registro = models.DateTimeField(auto_now_add=True)
     fecha_confirmacion = models.DateTimeField(null=True, blank=True)
     total = models.DecimalField(max_digits=8, decimal_places=2)
     estado = EnumField(Estado, default=Estado.PENDIENTE)
-    cuotas = models.ManyToManyField(Cuota)
+    cuotas = models.ManyToManyField(Cuota, related_name='pagos_estudiantes')
 
     def __str__(self) -> str:
         return f'{self.estudiante} - {self.fecha_registro}: ${self.total}'
 
 class PagoInstructor(models.Model):
-    instructor = models.ForeignKey(Instructor, on_delete=models.RESTRICT)
-    salario = models.ForeignKey(Salario, on_delete=models.RESTRICT)
+    instructor = models.ForeignKey(Instructor, related_name='pagos', on_delete=models.RESTRICT)
+    salario = models.ForeignKey(Salario, related_name='instructores_salario', on_delete=models.RESTRICT)
     fecha_registro = models.DateTimeField(auto_now_add=True)
     monto = models.DecimalField(max_digits=8, decimal_places=2)
     esta_confirmado = models.BooleanField(default=True)
@@ -189,10 +189,10 @@ class PagoInstructor(models.Model):
         return f'{self.instructor} - {self.fecha_registro}: ${self.monto}'
 
 class Documento(models.Model):
-    estudiante = models.ForeignKey(Estudiante, on_delete=models.CASCADE, null=True, blank=True)
-    instructor = models.ForeignKey(Instructor, on_delete=models.CASCADE, null=True, blank=True)
-    pago = models.ForeignKey(PagoEstudiante, on_delete=models.CASCADE, null=True, blank=True)
-    tipo = models.ForeignKey(TipoDocumento, on_delete=models.RESTRICT, null=True, blank=True)
+    estudiante = models.ForeignKey(Estudiante, related_name='documentos', on_delete=models.CASCADE, null=True, blank=True)
+    instructor = models.ForeignKey(Instructor, related_name='documentos', on_delete=models.CASCADE, null=True, blank=True)
+    pago = models.ForeignKey(PagoEstudiante, related_name='documentos', on_delete=models.CASCADE, null=True, blank=True)
+    tipo = models.ForeignKey(TipoDocumento, related_name='documentos', on_delete=models.RESTRICT, null=True, blank=True)
     archivo = models.FileField(
         upload_to=generate_uuid_filename,
         validators=[
