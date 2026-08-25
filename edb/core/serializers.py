@@ -12,19 +12,15 @@ class SalarioSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class TutorListSerializer(serializers.ModelSerializer):
-    nombre_completo = serializers.SerializerMethodField(read_only=True)
-
     class Meta:
         model = Tutor
         fields = [
             'id',
             'nombre_completo',
             'correo_electronico',
-            'telefono'
+            'telefono',
+            'fecha_registro',
         ]
-
-    def get_nombre_completo(self, obj: Tutor):
-        return f'{obj}'
 
 class TutorSerializer(serializers.ModelSerializer):
     class Meta:
@@ -32,28 +28,33 @@ class TutorSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class EstudianteListSerializer(serializers.ModelSerializer):
-    nombre_completo = serializers.SerializerMethodField(read_only=True)
+    nombre_completo = serializers.CharField(read_only=True)
+    edad = serializers.IntegerField(read_only=True)
+    rango_edad = EnumField(Estudiante.RangoEdad)
 
     class Meta:
         model = Estudiante
         fields = [
             'id',
             'nombre_completo',
+            'edad',
+            'rango_edad',
             'genero',
             'curp',
             'estado_inscripcion',
+            'fecha_registro',
         ]
 
-    def get_nombre_completo(self, obj: Estudiante):
-        return f'{obj}'
-
 class EstudianteSerializer(serializers.ModelSerializer):
+    edad = serializers.IntegerField(read_only=True)
+    rango_edad = serializers.CharField(read_only=True)
+
     class Meta:
         model = Estudiante
         fields = '__all__'
 
 class InstructorListSerializer(serializers.ModelSerializer):
-    nombre_completo = serializers.SerializerMethodField(read_only=True)
+    nombre_completo = serializers.CharField(read_only=True)
 
     class Meta:
         model = Instructor
@@ -62,11 +63,9 @@ class InstructorListSerializer(serializers.ModelSerializer):
             'nombre_completo',
             'correo_electronico',
             'telefono',
-            'esta_habilitado'
+            'esta_habilitado',
+            'fecha_registro',
         ]
-
-    def get_nombre_completo(self, obj: Tutor):
-        return f'{obj}'
 
 class InstructorReadSerializer(serializers.ModelSerializer):
     class Meta:
@@ -114,7 +113,7 @@ class ClaseEstudianteListSerializer(serializers.ModelSerializer):
         depth = 1
 
 class ClaseListSerializer(serializers.ModelSerializer):
-    nombre_instructor = serializers.SerializerMethodField(read_only=True)
+    nombre_instructor = serializers.CharField(source='instructor.nombre_completo', read_only=True)
     curso = serializers.PrimaryKeyRelatedField(source='periodo.curso', read_only=True)
     nombre_curso = serializers.CharField(source='periodo.curso.nombre', read_only=True)
     fechas_periodo = serializers.SerializerMethodField(read_only=True)
@@ -126,9 +125,6 @@ class ClaseListSerializer(serializers.ModelSerializer):
 
     def get_fechas_periodo(self, obj: Clase):
         return f'{obj.periodo.fecha_inicio} - {obj.periodo.fecha_finalizacion}'
-
-    def get_nombre_instructor(self, obj: Clase):
-        return f'{obj.instructor}'
 
 class ClaseReadSerializer(serializers.ModelSerializer):
     estudiantes = ClaseEstudianteListSerializer(source='estudiantes_clase', many=True, read_only=True)
@@ -207,15 +203,12 @@ class PagoEstudianteCuotaSerializer(serializers.ModelSerializer):
         depth = 1
 
 class PagoEstudianteListSerializer(serializers.ModelSerializer):
-    nombre_estudiante = serializers.SerializerMethodField(read_only=True)
+    nombre_estudiante = serializers.CharField(source='estudiante.nombre_completo', read_only=True)
     cantidad_cuotas = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = PagoEstudiante
         exclude = ['cuotas']
-
-    def get_nombre_estudiante(self, obj: PagoEstudiante):
-        return f'{obj.estudiante}'
 
 class PagoEstudianteReadSerializer(serializers.ModelSerializer):
     estudiante = EstudianteListSerializer(read_only=True)
@@ -239,15 +232,12 @@ class PagoEstudianteUpdateSerializer(serializers.ModelSerializer):
         read_only_fields = ['estudiante', 'total']
 
 class PagoInstructorListSerializer(serializers.ModelSerializer):
-    nombre_instructor = InstructorListSerializer(read_only=True)
+    nombre_instructor = serializers.CharField(source='instructor.nombre_completo', read_only=True)
     concepto_salario = serializers.CharField(source='salario.concepto', read_only=True)
 
     class Meta:
         model = PagoInstructor
         fields = '__all__'
-
-    def get_nombre_instructor(self, obj: PagoInstructor):
-        return f'{obj.instructor}'
 
 class PagoInstructorReadSerializer(serializers.ModelSerializer):
     instructor = InstructorListSerializer(read_only=True)

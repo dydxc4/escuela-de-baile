@@ -34,13 +34,15 @@ class Persona(models.Model):
     class Meta:
         abstract = True
 
-    def __str__(self) -> str:
-        nombre_completo = f'{self.nombre} {self.apellido_paterno}'
-
+    @property
+    def nombre_completo(self):
+        result = f'{self.nombre} {self.apellido_paterno}'
         if self.apellido_materno is not None:
-            nombre_completo += f' {self.apellido_materno}'
+            result += f' {self.apellido_materno}'
+        return result.strip()
 
-        return nombre_completo.strip()
+    def __str__(self) -> str:
+        return self.nombre_completo
 
 class Estudiante(Persona):
     class Genero(models.TextChoices):
@@ -53,12 +55,36 @@ class Estudiante(Persona):
         PAGO_PENDIENTE = 'PAGO_PENDIENTE', 'Pago pendiente'
         BAJA = 'BAJA', 'Baja'
 
+    class RangoEdad(models.TextChoices):
+        NINIO = 'NINIO', 'Niño'
+        ADOLESCENTE = 'ADOLESCENTE', 'Adolescente'
+        ADULTO = 'ADULTO', 'Adulto'
+
     telefono = models.CharField(max_length=20, null=True, blank=True, validators=[phone_number_validator])
     curp = models.CharField(max_length=18, unique=True)
     fecha_nacimiento = models.DateField()
     genero = EnumField(Genero, null=True, blank=True)
     estado_inscripcion = EnumField(Estado, default=Estado.ACTIVO)
     posee_tarjeta_asistencia = models.BooleanField()
+
+    @property
+    def edad(self):
+        today = timezone.now().date()
+        age = today.year - self.fecha_nacimiento.year - \
+            ((today.month, today.day) < (
+                self.fecha_nacimiento.month,
+                self.fecha_nacimiento.day
+            ))
+        return age
+
+    @property
+    def rango_edad(self) -> RangoEdad:
+        # TODO: remplazar por valores establecidos en configuración
+        if self.edad <= 13:
+            return self.RangoEdad.NINIO
+        elif self.edad < 18:
+            return self.RangoEdad.ADOLESCENTE
+        return self.RangoEdad.ADULTO
 
 class Tutor(Persona):
     telefono = models.CharField(max_length=20, validators=[phone_number_validator])
@@ -156,10 +182,12 @@ class Cuota(models.Model):
         CLASE_INDIVIDUAL = 'CLASE_INDIVIDUAL', 'Clase individual'
         PAQUETE_CLASES = 'PAQUETE_CLASES', 'Paquete de clases'
 
+    # TODO: agregar campos para mes, año y cantidad_clases
     periodo = models.ForeignKey(Periodo, related_name='cuotas', on_delete=models.CASCADE, null=True, blank=True)
     tipo = EnumField(Tipo)
     concepto = models.CharField(max_length=120, unique=True)
     costo = models.DecimalField(max_digits=8, decimal_places=2, validators=[price_validator])
+    # TODO: cambiar a datefield
     fecha_limite = models.DateTimeField(null=True, blank=True)
     fecha_registro = models.DateTimeField(auto_now_add=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
