@@ -42,7 +42,6 @@ class EstudianteListSerializer(serializers.ModelSerializer):
             'genero',
             'curp',
             'estado_inscripcion',
-            'fecha_registro',
         ]
 
     def get_nombre_completo(self, obj: Estudiante):
@@ -106,6 +105,14 @@ class PeriodoSerializer(serializers.ModelSerializer):
         model = Periodo
         fields = '__all__'
 
+class ClaseEstudianteListSerializer(serializers.ModelSerializer):
+    estudiante = EstudianteListSerializer(read_only=True)
+
+    class Meta:
+        model = ClaseEstudiante
+        exclude = ['clase']
+        depth = 1
+
 class ClaseListSerializer(serializers.ModelSerializer):
     nombre_instructor = serializers.SerializerMethodField(read_only=True)
     curso = serializers.PrimaryKeyRelatedField(source='periodo.curso', read_only=True)
@@ -124,7 +131,7 @@ class ClaseListSerializer(serializers.ModelSerializer):
         return f'{obj.instructor}'
 
 class ClaseReadSerializer(serializers.ModelSerializer):
-    estudiantes = EstudianteListSerializer(many=True, read_only=True)
+    estudiantes = ClaseEstudianteListSerializer(source='estudiantes_clase', many=True, read_only=True)
     instructor = InstructorListSerializer(read_only=True)
     periodo = PeriodoSerializer(read_only=True)
 
@@ -137,6 +144,26 @@ class ClaseWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Clase
         fields = '__all__'
+
+class ClaseEstudianteReadSerializer(serializers.ModelSerializer):
+    clase = ClaseListSerializer(read_only=True)
+    estudiante = EstudianteListSerializer(read_only=True)
+
+    class Meta:
+        model = ClaseEstudiante
+        fields = '__all__'
+        depth = 1
+
+class ClaseEstudianteCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ClaseEstudiante
+        fields = '__all__'
+
+class ClaseEstudianteUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ClaseEstudiante
+        fields = '__all__'
+        read_only_fields = ['clase', 'estudiante']
 
 class CuotaListSerializer(serializers.ModelSerializer):
     fechas_periodo = serializers.SerializerMethodField(read_only=True)

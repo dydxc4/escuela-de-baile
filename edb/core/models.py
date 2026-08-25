@@ -123,7 +123,7 @@ class Clase(models.Model):
     duracion = models.DurationField()
     descripcion = models.CharField(max_length=120, null=True, blank=True)
     estado = EnumField(Estado, default=Estado.PENDIENTE)
-    estudiantes = models.ManyToManyField(Estudiante, related_name='clases', blank=True)
+    estudiantes = models.ManyToManyField(Estudiante, through='ClaseEstudiante', related_name='clases')
 
     @property
     def cantidad_estudiantes(self):
@@ -132,6 +132,22 @@ class Clase(models.Model):
 
     def __str__(self) -> str:
         return f'{self.periodo} - Clase {self.fecha_hora} [{self.estado}]'
+
+class ClaseEstudiante(models.Model):
+    clase = models.ForeignKey(Clase, related_name='estudiantes_clase', on_delete=models.CASCADE)
+    estudiante = models.ForeignKey(Estudiante, related_name='clases_estudiante', on_delete=models.RESTRICT)
+    fecha_registro = models.DateTimeField(auto_now_add=True)
+    asistio = models.BooleanField(default=False)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['clase', 'estudiante'], name='unique_clase_estudiante'
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f'{self.estudiante} en {self.clase}'
 
 class Cuota(models.Model):
     class Tipo(models.TextChoices):

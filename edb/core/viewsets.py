@@ -61,6 +61,16 @@ class ClaseViewSet(viewsets.ModelViewSet):
             return ClaseReadSerializer
         return ClaseWriteSerializer
 
+class ClaseEstudianteViewSet(viewsets.ModelViewSet):
+    queryset = ClaseEstudiante.objects.all()
+
+    def get_serializer_class(self):
+        if self.action in ['list', 'retrieve']:
+            return ClaseEstudianteReadSerializer
+        elif self.action == 'create':
+            return ClaseEstudianteCreateSerializer
+        return ClaseEstudianteUpdateSerializer
+
 class CuotaViewSet(viewsets.ModelViewSet):
     queryset = Cuota.objects.all()
 

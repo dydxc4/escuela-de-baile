@@ -14,6 +14,7 @@ router.register(r'tutores_estudiantes', TutorEstudianteViewSet, basename='tutor_
 router.register(r'cursos', CursoViewSet, basename='curso')
 router.register(r'periodos', PeriodoViewSet, basename='periodo')
 router.register(r'clases', ClaseViewSet, basename='clase')
+router.register(r'clases_estudiantes', ClaseEstudianteViewSet, basename='clase_estudiante')
 router.register(r'cuotas', CuotaViewSet, basename='cuota')
 router.register(r'pago_estudiantes', PagoEstudianteViewSet, basename='pago_estudiante')
 router.register(r'pago_instructores', PagoInstructorViewSet, basename='pago_instructor')
