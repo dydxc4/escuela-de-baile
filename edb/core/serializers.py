@@ -171,6 +171,14 @@ class CuotaWriteSerializer(serializers.ModelSerializer):
         model = Cuota
         fields = '__all__'
 
+class PagoEstudianteCuotaSerializer(serializers.ModelSerializer):
+    cuota = CuotaListSerializer(read_only=True)
+
+    class Meta:
+        model = CuotaPagada
+        exclude = ['pago']
+        depth = 1
+
 class PagoEstudianteListSerializer(serializers.ModelSerializer):
     nombre_estudiante = serializers.SerializerMethodField(read_only=True)
     cantidad_cuotas = serializers.IntegerField(read_only=True)
@@ -184,7 +192,7 @@ class PagoEstudianteListSerializer(serializers.ModelSerializer):
 
 class PagoEstudianteReadSerializer(serializers.ModelSerializer):
     estudiante = EstudianteListSerializer(read_only=True)
-    cuotas = CuotaListSerializer(many=True, read_only=True)
+    cuotas = PagoEstudianteCuotaSerializer(source='cuotas_pago', many=True, read_only=True)
 
     class Meta:
         model = PagoEstudiante
@@ -233,6 +241,21 @@ class PagoInstructorUpdateSerializer(serializers.ModelSerializer):
         model = PagoInstructor
         exclude = ['instructor', 'monto']
         read_only_fields = ['instructor', 'monto']
+
+class CuotaPagadaReadSerializer(serializers.ModelSerializer):
+    pago = PagoEstudianteListSerializer(read_only=True)
+    cuota = CuotaListSerializer(read_only=True)
+
+    class Meta:
+        model = CuotaPagada
+        fields = '__all__'
+        depth = 1
+
+class CuotaPagadaWriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CuotaPagada
+        fields = ['cuota', 'pago']
+        read_only_fields = ['monto']
 
 class DocumentoReadSerializer(serializers.ModelSerializer):
     tamanio = serializers.SerializerMethodField()

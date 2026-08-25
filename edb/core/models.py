@@ -1,3 +1,5 @@
+from typing import Iterable
+
 from django.db import models
 from django.core.validators import FileExtensionValidator
 from django_enum import EnumField
@@ -167,14 +169,19 @@ class PagoEstudiante(models.Model):
     estudiante = models.ForeignKey(Estudiante, related_name='pagos', on_delete=models.RESTRICT)
     fecha_registro = models.DateTimeField(auto_now_add=True)
     fecha_confirmacion = models.DateTimeField(null=True, blank=True)
-    total = models.DecimalField(max_digits=8, decimal_places=2)
+    total = models.DecimalField(max_digits=8, decimal_places=2, default=0.0)
     estado = EnumField(Estado, default=Estado.PENDIENTE)
-    cuotas = models.ManyToManyField(Cuota, related_name='pagos_estudiantes')
+    cuotas = models.ManyToManyField(Cuota, related_name='pagos_estudiantes', through='CuotaPagada')
 
     @property
     def cantidad_cuotas(self):
         resultado = self.cuotas.aggregate(cantidad=models.Count('id')).get('cantidad')
         return resultado if resultado else 0
+
+    def save(self, *args, **kwargs):
+        if self.estado == PagoEstudiante.Estado.COMPLETADO and not self.fecha_confirmacion:
+            self.fecha_confirmacion = timezone.now()
+        super().save(*args, **kwargs)
 
     def __str__(self) -> str:
         return f'{self.estudiante} - {self.fecha_registro}: ${self.total}'
@@ -188,6 +195,26 @@ class PagoInstructor(models.Model):
 
     def __str__(self) -> str:
         return f'{self.instructor} - {self.fecha_registro}: ${self.monto}'
+
+class CuotaPagada(models.Model):
+    cuota = models.ForeignKey(Cuota, related_name='pagos_cuota', on_delete=models.RESTRICT)
+    pago = models.ForeignKey(PagoEstudiante, related_name='cuotas_pago', on_delete=models.CASCADE)
+    monto = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['cuota', 'pago'], name='unique_cuota_pago'
+            )
+        ]
+
+    def save(self, *args, **kwargs):
+        if not self.monto:
+            self.monto = self.cuota.costo
+        super().save(*args, **kwargs)
+
+    def __str__(self) -> str:
+        return f'{self.pago} para {self.cuota}'
 
 class Documento(models.Model):
     estudiante = models.ForeignKey(Estudiante, related_name='documentos', on_delete=models.CASCADE, null=True, blank=True)

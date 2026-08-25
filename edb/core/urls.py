@@ -17,6 +17,7 @@ router.register(r'clases', ClaseViewSet, basename='clase')
 router.register(r'cuotas', CuotaViewSet, basename='cuota')
 router.register(r'pago_estudiantes', PagoEstudianteViewSet, basename='pago_estudiante')
 router.register(r'pago_instructores', PagoInstructorViewSet, basename='pago_instructor')
+router.register(r'cuotas_pagadas', CuotaPagadaViewSet, basename='cuota_pagada')
 router.register(r'documentos', DocumentoViewSet, basename='documento')
 
 urlpatterns = [

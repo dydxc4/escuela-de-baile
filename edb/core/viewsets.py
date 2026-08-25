@@ -95,6 +95,15 @@ class PagoInstructorViewSet(viewsets.ModelViewSet):
             return PagoInstructorCreateSerializer
         return PagoInstructorUpdateSerializer
 
+class CuotaPagadaViewSet(viewsets.ModelViewSet):
+    queryset = CuotaPagada.objects.all()
+    http_method_names = ['get', 'post', 'delete', 'head', 'options']
+
+    def get_serializer_class(self):
+        if self.action in ['list', 'retrieve']:
+            return CuotaPagadaReadSerializer
+        return CuotaPagadaWriteSerializer
+
 class DocumentoViewSet(viewsets.ModelViewSet):
     queryset = Documento.objects.all()
     parser_classes = [parsers.MultiPartParser, parsers.FormParser]
