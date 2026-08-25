@@ -151,7 +151,9 @@ class CuotaListSerializer(serializers.ModelSerializer):
         ]
 
     def get_fechas_periodo(self, obj: Cuota):
-        return f'{obj.periodo.fecha_inicio} - {obj.periodo.fecha_finalizacion}'
+        if obj.periodo is not None:
+            return f'{obj.periodo.fecha_inicio} - {obj.periodo.fecha_finalizacion}'
+        return None
 
 class CuotaReadSerializer(serializers.ModelSerializer):
     clases = ClaseListSerializer(many=True, read_only=True)
