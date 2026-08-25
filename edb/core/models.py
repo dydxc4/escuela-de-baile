@@ -123,6 +123,11 @@ class Clase(models.Model):
     estado = EnumField(Estado, default=Estado.PENDIENTE)
     estudiantes = models.ManyToManyField(Estudiante, related_name='clases', blank=True)
 
+    @property
+    def cantidad_estudiantes(self):
+        resultado = self.estudiantes.aggregate(cantidad=models.Count('id')).get('cantidad')
+        return resultado if resultado else 0
+
     def __str__(self) -> str:
         return f'{self.periodo} - Clase {self.fecha_hora} [{self.estado}]'
 
@@ -143,6 +148,11 @@ class Cuota(models.Model):
     esta_habilitado = models.BooleanField(default=True)
     clases = models.ManyToManyField(Clase, related_name='cuotas', blank=True)
 
+    @property
+    def cantidad_clases(self):
+        resultado = self.clases.aggregate(cantidad=models.Count('id')).get('cantidad')
+        return resultado if resultado else 0
+
     def __str__(self) -> str:
         return f'{self.concepto}: ${self.costo}'
 
@@ -160,6 +170,11 @@ class PagoEstudiante(models.Model):
     total = models.DecimalField(max_digits=8, decimal_places=2)
     estado = EnumField(Estado, default=Estado.PENDIENTE)
     cuotas = models.ManyToManyField(Cuota, related_name='pagos_estudiantes')
+
+    @property
+    def cantidad_cuotas(self):
+        resultado = self.cuotas.aggregate(cantidad=models.Count('id')).get('cantidad')
+        return resultado if resultado else 0
 
     def __str__(self) -> str:
         return f'{self.estudiante} - {self.fecha_registro}: ${self.total}'

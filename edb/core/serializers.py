@@ -111,6 +111,7 @@ class ClaseListSerializer(serializers.ModelSerializer):
     curso = serializers.PrimaryKeyRelatedField(source='periodo.curso', read_only=True)
     nombre_curso = serializers.CharField(source='periodo.curso.nombre', read_only=True)
     fechas_periodo = serializers.SerializerMethodField(read_only=True)
+    cantidad_estudiantes = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Clase
@@ -141,6 +142,7 @@ class CuotaListSerializer(serializers.ModelSerializer):
     fechas_periodo = serializers.SerializerMethodField(read_only=True)
     curso = serializers.PrimaryKeyRelatedField(source='periodo.curso', read_only=True)
     nombre_curso = serializers.CharField(source='periodo.curso.nombre', read_only=True)
+    cantidad_clases = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Cuota
@@ -171,14 +173,11 @@ class CuotaWriteSerializer(serializers.ModelSerializer):
 
 class PagoEstudianteListSerializer(serializers.ModelSerializer):
     nombre_estudiante = serializers.SerializerMethodField(read_only=True)
-    cantidad_cuotas = serializers.SerializerMethodField(read_only=True)
+    cantidad_cuotas = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = PagoEstudiante
         exclude = ['cuotas']
-
-    def get_cantidad_cuotas(self, obj: PagoEstudiante):
-        return obj.cuotas.count()
 
     def get_nombre_estudiante(self, obj: PagoEstudiante):
         return f'{obj.estudiante}'
