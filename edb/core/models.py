@@ -133,7 +133,7 @@ class Cuota(models.Model):
         CLASE_INDIVIDUAL = 'CLASE_INDIVIDUAL', 'Clase individual'
         PAQUETE_CLASES = 'PAQUETE_CLASES', 'Paquete de clases'
 
-    periodo = models.ForeignKey(Periodo, related_name='cuotas', on_delete=models.CASCADE, null=True)
+    periodo = models.ForeignKey(Periodo, related_name='cuotas', on_delete=models.CASCADE, null=True, blank=True)
     tipo = EnumField(Tipo)
     concepto = models.CharField(max_length=120, unique=True)
     costo = models.DecimalField(max_digits=8, decimal_places=2, validators=[price_validator])
