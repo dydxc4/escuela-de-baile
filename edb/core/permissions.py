@@ -34,9 +34,9 @@ class EsClaseAlterable(BasePermission):
         return True
 
 class EsClaseEstudianteAlterable(BasePermission):
-    message = 'No es posible alterar una asistencia de una clase completada'
+    message = 'No es posible alterar una asistencia a una clase'
 
     def has_object_permission(self, request, view, obj: ClaseEstudiante):
         if request.method in ['DELETE', 'PUT', 'PATCH']:
-            return not obj.clase.estado == Clase.Estado.COMPLETADA
+            return not (obj.clase.estado == Clase.Estado.COMPLETADA or obj.asistio)
         return True
