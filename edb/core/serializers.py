@@ -157,6 +157,11 @@ class ClaseEstudianteCreateSerializer(serializers.ModelSerializer):
         model = ClaseEstudiante
         fields = '__all__'
 
+    def validate_clase(self, value: Clase):
+        if value.estado == Clase.Estado.COMPLETADA:
+            raise ValidationError('No es posible alterar una clase completada')
+        return value
+
 class ClaseEstudianteUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClaseEstudiante
@@ -202,21 +207,28 @@ class CuotaCreateSerializer(serializers.ModelSerializer):
         anio = attrs.get('anio')
         cantidad_clases = attrs.get('cantidad_clases')
         periodo = attrs.get('perido')
+        clases = attrs.get('clases')
 
         # Comprueba si se establecio el tipo de cuota
         if tipo:
-            # Para mensualidad: mes y año son requeridos
+            # Para mensualidad: requiere de mes y año
             if tipo == Cuota.Tipo.MENSUALIDAD and None in [mes, anio]:
                 raise ValidationError({'tipo': 'Una cuota de mensualidad debe definir mes y año'})
-            # Para inscripción: mes o año son requeridos
+            # Para inscripción: requiere de mes o año
             elif tipo == Cuota.Tipo.INSCRIPCION and periodo is None and anio is None:
                 raise ValidationError({'tipo': 'Una cuota de inscripción debe definir año o periodo de curso'})
-            # Para paquete de clases: una cantidad de clases mayor que 1 es requerido
+            # Para clase individual: requiere una sola clase
+            elif tipo == Cuota.Tipo.CLASE_INDIVIDUAL and clases is not None and len(clases) > 1:
+                raise ValidationError({'tipo': 'Una cuota de clase no debe contener más de una'})
+            # Para paquete de clases: requiere de una cantidad de clases mayor que 1
             elif tipo == Cuota.Tipo.PAQUETE_CLASES:
+                if clases is not None:
+                    cantidad_clases = len(clases)
+
                 if cantidad_clases is None:
                     raise ValidationError({'tipo': 'Un paquete de clases debe definir la cantidad de clases'})
                 elif cantidad_clases <= 1:
-                    raise ValidationError({'tipo': 'Un paquete de clases debe definir una cantidad de clases mayor que 1'})
+                    raise ValidationError({'tipo': 'Un paquete de clases debe tener más de una clase'})
 
         return attrs
 
@@ -289,7 +301,7 @@ class PagoInstructorUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = PagoInstructor
         fields = '__all__'
-        read_only_fields = ['instructor', 'monto']
+        read_only_fields = ['instructor', 'salario', 'monto']
 
 class CuotaPagadaReadSerializer(serializers.ModelSerializer):
     pago = PagoEstudianteListSerializer(read_only=True)
@@ -303,8 +315,13 @@ class CuotaPagadaReadSerializer(serializers.ModelSerializer):
 class CuotaPagadaWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = CuotaPagada
-        fields = ['cuota', 'pago']
+        fields = '__all__'
         read_only_fields = ['monto']
+
+    def validate_pago(self, value: PagoEstudiante):
+        if value.estado.es_finalizado():
+            raise ValidationError('No es posible alterar un pago finalizado')
+        return value
 
 class DocumentoReadSerializer(serializers.ModelSerializer):
     tamanio = serializers.SerializerMethodField()
@@ -337,12 +354,12 @@ class DocumentoCreateSerializer(serializers.ModelSerializer):
 
         if counter == 0:
             raise serializers.ValidationError({
-                'message': 'Debe establecer un identificador de estudiante, instructor o pago.'
+                'non_field_errors': 'Debe establecer un identificador de estudiante, instructor o pago.'
                 }
             )
         if counter > 1:
             raise serializers.ValidationError({
-                'message': 'No se pueden establecer más de un identificador de estudiante, instructor o pago al mismo tiempo.'
+                'non_field_errors': 'No se pueden establecer más de un identificador de estudiante, instructor o pago al mismo tiempo.'
                 }
             )
 
@@ -351,5 +368,5 @@ class DocumentoCreateSerializer(serializers.ModelSerializer):
 class DocumentoUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Documento
-        fields = ['tipo', 'notas']
+        fields = '__all__'
         read_only_fields = ['id', 'estudiante', 'instructor', 'pago', 'archivo']

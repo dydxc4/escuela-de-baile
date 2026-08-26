@@ -3,6 +3,7 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from .serializers import *
 from .filters import *
+from .permissions import *
 
 class TipoDocumentoViewSet(viewsets.ModelViewSet):
     serializer_class = TipoDocumentoSerializer
@@ -134,6 +135,7 @@ class PeriodoViewSet(viewsets.ModelViewSet):
 
 class ClaseViewSet(viewsets.ModelViewSet):
     queryset = Clase.objects.all()
+    permission_classes = [EsClaseAlterable]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = ClaseFilter
     search_fields = [
@@ -155,6 +157,7 @@ class ClaseViewSet(viewsets.ModelViewSet):
 
 class ClaseEstudianteViewSet(viewsets.ModelViewSet):
     queryset = ClaseEstudiante.objects.all()
+    permission_classes = [EsClaseEstudianteAlterable]
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = ClaseEstudianteFilter
     ordering_fields = [
@@ -198,6 +201,7 @@ class CuotaViewSet(viewsets.ModelViewSet):
 
 class PagoEstudianteViewSet(viewsets.ModelViewSet):
     queryset = PagoEstudiante.objects.all()
+    permission_classes = [EsPagoEstudianteAlterable]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = PagoEstudianteFilter
     search_fields = [
@@ -219,6 +223,7 @@ class PagoEstudianteViewSet(viewsets.ModelViewSet):
 
 class PagoInstructorViewSet(viewsets.ModelViewSet):
     queryset = PagoInstructor.objects.all()
+    permission_classes = [EsPagoInstructorAlterable]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = PagoInstructorFilter
     search_fields = [
@@ -242,6 +247,7 @@ class PagoInstructorViewSet(viewsets.ModelViewSet):
 class CuotaPagadaViewSet(viewsets.ModelViewSet):
     queryset = CuotaPagada.objects.all()
     http_method_names = ['get', 'post', 'delete', 'head', 'options']
+    permission_classes = [EsCuotaPagadaAlterable]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = CuotaPagadaFilter
     search_fields = [

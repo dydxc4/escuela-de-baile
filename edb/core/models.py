@@ -204,6 +204,8 @@ class Cuota(models.Model):
         if self.tipo in [self.Tipo.CLASE_INDIVIDUAL, self.Tipo.PAQUETE_CLASES]:
             self.mes = None
             self.anio = None
+        else:
+            self.cantidad_clases = None
         super().save(*args, **kwargs)
 
     def __str__(self) -> str:
@@ -216,6 +218,9 @@ class PagoEstudiante(models.Model):
         COMPLETADO = 'COMPLETADO', 'Completado'
         CANCELADO = 'CANCELADO', 'Cancelado'
         DEVUELTO = 'DEVUELTO', 'Devuelto'
+
+        def es_finalizado(self):
+            return self in [self.CANCELADO, self.DEVUELTO, self.COMPLETADO]
 
     estudiante = models.ForeignKey(Estudiante, related_name='pagos', on_delete=models.RESTRICT)
     fecha_registro = models.DateTimeField(auto_now_add=True)
@@ -243,6 +248,11 @@ class PagoInstructor(models.Model):
     fecha_registro = models.DateTimeField(auto_now_add=True)
     monto = models.DecimalField(max_digits=8, decimal_places=2)
     esta_confirmado = models.BooleanField(default=True)
+
+    def save(self, *args, **kwargs):
+        if not self.monto:
+            self.monto = self.salario.monto
+        super().save(*args, **kwargs)
 
     def __str__(self) -> str:
         return f'{self.instructor} - {self.fecha_registro}: ${self.monto}'
