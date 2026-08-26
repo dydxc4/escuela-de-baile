@@ -22,6 +22,15 @@ class Salario(models.Model):
     def __str__(self) -> str:
         return f'{self.concepto}: ${self.monto}'
 
+class Curso(models.Model):
+    nombre = models.CharField(max_length=80)
+    descripcion = models.TextField(max_length=640, null=True, blank=True)
+    esta_habilitado = models.BooleanField(default=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self) -> str:
+        return self.nombre
+
 class Persona(models.Model):
     nombre = models.CharField(max_length=80)
     apellido_paterno = models.CharField(max_length=40)
@@ -122,23 +131,6 @@ class TutorEstudiante(models.Model):
     def __str__(self) -> str:
         return f'{self.tutor} {self.parentesco.label.lower()} de {self.estudiante}'
 
-class Curso(models.Model):
-    nombre = models.CharField(max_length=80)
-    descripcion = models.TextField(max_length=640, null=True, blank=True)
-    esta_habilitado = models.BooleanField(default=True)
-    fecha_creacion = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self) -> str:
-        return self.nombre
-
-class Periodo(models.Model):
-    curso = models.ForeignKey(Curso, related_name='periodos', on_delete=models.RESTRICT)
-    fecha_inicio = models.DateField()
-    fecha_finalizacion = models.DateField()
-
-    def __str__(self) -> str:
-        return f'{self.curso} ({self.fecha_inicio} - {self.fecha_finalizacion})'
-
 class Clase(models.Model):
     class Estado(models.TextChoices):
         PENDIENTE = 'PENDIENTE', 'Pendiente'
@@ -146,7 +138,7 @@ class Clase(models.Model):
         APLAZADA = 'APLAZADA', 'Aplazada'
         COMPLETADA = 'COMPLETADA', 'Completada'
 
-    periodo = models.ForeignKey(Periodo, related_name='clases', on_delete=models.RESTRICT)
+    curso = models.ForeignKey(Curso, related_name='clases', on_delete=models.RESTRICT)
     instructor = models.ForeignKey(Instructor, related_name='clases', on_delete=models.RESTRICT)
     fecha_hora = models.DateTimeField()
     duracion = models.DurationField()
@@ -160,7 +152,7 @@ class Clase(models.Model):
         return resultado if resultado else 0
 
     def __str__(self) -> str:
-        return f'{self.periodo} - Clase {self.fecha_hora} [{self.estado}]'
+        return f'{self.curso.nombre} - Clase {self.fecha_hora} [{self.estado}]'
 
 class ClaseEstudiante(models.Model):
     clase = models.ForeignKey(Clase, related_name='estudiantes_clase', on_delete=models.CASCADE)
@@ -185,7 +177,7 @@ class Cuota(models.Model):
         CLASE_INDIVIDUAL = 'CLASE_INDIVIDUAL', 'Clase individual'
         PAQUETE_CLASES = 'PAQUETE_CLASES', 'Paquete de clases'
 
-    periodo = models.ForeignKey(Periodo, related_name='cuotas', on_delete=models.CASCADE, null=True, blank=True)
+    curso = models.ForeignKey(Curso, related_name='cuotas', on_delete=models.CASCADE, null=True, blank=True)
     tipo = EnumField(Tipo)
     concepto = models.CharField(max_length=120, unique=True)
     costo = models.DecimalField(max_digits=8, decimal_places=2, validators=[price_validator])

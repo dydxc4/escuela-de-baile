@@ -57,22 +57,10 @@ class CursoFilter(django_filters.FilterSet):
             'esta_habilitado': ['exact'],
             'fecha_creacion': ['date__lte', 'date__gte', 'date__exact'],
         }
-class PeriodoFilter(django_filters.FilterSet):
-    curso = django_filters.ModelChoiceFilter(queryset=Curso.objects.all())
-
-    class Meta:
-        model = Periodo
-        fields = {
-            'fecha_inicio': ['gte', 'lte', 'exact'],
-            'fecha_finalizacion': ['gte', 'lte', 'exact'],
-            'curso__esta_habilitado': ['exact'],
-        }
-
 
 class ClaseFilter(django_filters.FilterSet):
     instructor = django_filters.ModelChoiceFilter(queryset=Instructor.objects.all())
-    curso = django_filters.ModelChoiceFilter(field_name='periodo__curso', queryset=Curso.objects.all())
-    periodo = django_filters.ModelChoiceFilter(queryset=Periodo.objects.all())
+    curso = django_filters.ModelChoiceFilter(queryset=Curso.objects.all())
 
     class Meta:
         model = Clase
@@ -85,8 +73,7 @@ class ClaseEstudianteFilter(django_filters.FilterSet):
     clase = django_filters.ModelChoiceFilter(queryset=Clase.objects.all())
     estudiante = django_filters.ModelChoiceFilter(queryset=Estudiante.objects.all())
     instuctor = django_filters.ModelChoiceFilter(field_name='clase__instructor', queryset=Instructor.objects.all())
-    curso = django_filters.ModelChoiceFilter(field_name='clase__periodo__curso', queryset=Curso.objects.all())
-    periodo = django_filters.ModelChoiceFilter(field_name='clase__periodo', queryset=Periodo.objects.all())
+    curso = django_filters.ModelChoiceFilter(field_name='clase__curso', queryset=Curso.objects.all())
 
     class Meta:
         model = ClaseEstudiante
@@ -96,8 +83,7 @@ class ClaseEstudianteFilter(django_filters.FilterSet):
         }
 
 class CuotaFilter(django_filters.FilterSet):
-    curso = django_filters.ModelChoiceFilter(field_name='periodo__curso', queryset=Curso.objects.all())
-    periodo = django_filters.ModelChoiceFilter(queryset=Periodo.objects.all())
+    curso = django_filters.ModelChoiceFilter(queryset=Curso.objects.all())
 
     class Meta:
         model = Cuota
@@ -137,8 +123,7 @@ class CuotaPagadaFilter(django_filters.FilterSet):
     cuota = django_filters.ModelChoiceFilter(queryset=Cuota.objects.all())
     pago = django_filters.ModelChoiceFilter(queryset=PagoEstudiante.objects.all())
     estudiante = django_filters.ModelChoiceFilter(field_name='pago__estudiante', queryset=Estudiante.objects.all())
-    curso = django_filters.ModelChoiceFilter(field_name='pago__periodo__curso', queryset=Curso.objects.all())
-    periodo = django_filters.ModelChoiceFilter(field_name='pago__periodo', queryset=Periodo.objects.all())
+    curso = django_filters.ModelChoiceFilter(field_name='pago__curso', queryset=Curso.objects.all())
 
     class Meta:
         model = CuotaPagada

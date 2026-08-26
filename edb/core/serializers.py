@@ -99,13 +99,6 @@ class CursoSerializer(serializers.ModelSerializer):
         model = Curso
         fields = '__all__'
 
-class PeriodoSerializer(serializers.ModelSerializer):
-    nombre_curso = serializers.CharField(source='curso.nombre', read_only=True)
-
-    class Meta:
-        model = Periodo
-        fields = '__all__'
-
 class ClaseEstudianteListSerializer(serializers.ModelSerializer):
     estudiante = EstudianteListSerializer(read_only=True)
 
@@ -116,22 +109,16 @@ class ClaseEstudianteListSerializer(serializers.ModelSerializer):
 
 class ClaseListSerializer(serializers.ModelSerializer):
     nombre_instructor = serializers.CharField(source='instructor.nombre_completo', read_only=True)
-    curso = serializers.PrimaryKeyRelatedField(source='periodo.curso', read_only=True)
-    nombre_curso = serializers.CharField(source='periodo.curso.nombre', read_only=True)
-    fechas_periodo = serializers.SerializerMethodField(read_only=True)
+    nombre_curso = serializers.CharField(source='curso.nombre', read_only=True)
     cantidad_estudiantes = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Clase
         exclude = ['estudiantes']
 
-    def get_fechas_periodo(self, obj: Clase):
-        return f'{obj.periodo.fecha_inicio} - {obj.periodo.fecha_finalizacion}'
-
 class ClaseReadSerializer(serializers.ModelSerializer):
     estudiantes = ClaseEstudianteListSerializer(source='estudiantes_clase', many=True, read_only=True)
     instructor = InstructorListSerializer(read_only=True)
-    periodo = PeriodoSerializer(read_only=True)
 
     class Meta:
         model = Clase
@@ -169,9 +156,7 @@ class ClaseEstudianteUpdateSerializer(serializers.ModelSerializer):
         read_only_fields = ['clase', 'estudiante']
 
 class CuotaListSerializer(serializers.ModelSerializer):
-    fechas_periodo = serializers.SerializerMethodField(read_only=True)
-    curso = serializers.PrimaryKeyRelatedField(source='periodo.curso', read_only=True)
-    nombre_curso = serializers.CharField(source='periodo.curso.nombre', read_only=True)
+    nombre_curso = serializers.CharField(source='curso.nombre', read_only=True)
     cantidad_clases = serializers.IntegerField(read_only=True)
 
     class Meta:
@@ -182,14 +167,8 @@ class CuotaListSerializer(serializers.ModelSerializer):
             'clases'
         ]
 
-    def get_fechas_periodo(self, obj: Cuota):
-        if obj.periodo is not None:
-            return f'{obj.periodo.fecha_inicio} - {obj.periodo.fecha_finalizacion}'
-        return None
-
 class CuotaReadSerializer(serializers.ModelSerializer):
     clases = ClaseListSerializer(many=True, read_only=True)
-    periodo = PeriodoSerializer(read_only=True)
 
     class Meta:
         model = Cuota
@@ -206,8 +185,8 @@ class CuotaCreateSerializer(serializers.ModelSerializer):
         mes = attrs.get('mes')
         anio = attrs.get('anio')
         cantidad_clases = attrs.get('cantidad_clases')
-        periodo = attrs.get('perido')
         clases = attrs.get('clases')
+        curso = attrs.get('curso')
 
         # Comprueba si se establecio el tipo de cuota
         if tipo:
@@ -215,8 +194,8 @@ class CuotaCreateSerializer(serializers.ModelSerializer):
             if tipo == Cuota.Tipo.MENSUALIDAD and None in [mes, anio]:
                 raise ValidationError({'tipo': 'Una cuota de mensualidad debe definir mes y año'})
             # Para inscripción: requiere de mes o año
-            elif tipo == Cuota.Tipo.INSCRIPCION and periodo is None and anio is None:
-                raise ValidationError({'tipo': 'Una cuota de inscripción debe definir año o periodo de curso'})
+            elif tipo == Cuota.Tipo.INSCRIPCION and curso is None and anio is None:
+                raise ValidationError({'tipo': 'Una cuota de inscripción debe definir año o curso'})
             # Para clase individual: requiere una sola clase
             elif tipo == Cuota.Tipo.CLASE_INDIVIDUAL and clases is not None and len(clases) > 1:
                 raise ValidationError({'tipo': 'Una cuota de clase no debe contener más de una'})
@@ -236,7 +215,7 @@ class CuotaUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cuota
         fields = '__all__'
-        read_only_fields = ['tipo', 'periodo', 'mes', 'anio']
+        read_only_fields = ['tipo', 'curso', 'mes', 'anio']
 
 class PagoEstudianteCuotaSerializer(serializers.ModelSerializer):
     cuota = CuotaListSerializer(read_only=True)

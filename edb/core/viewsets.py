@@ -124,15 +124,6 @@ class CursoViewSet(viewsets.ModelViewSet):
     ordering_fields = ['nombre', 'fecha_creacion']
     ordering = ['-fecha_creacion']
 
-class PeriodoViewSet(viewsets.ModelViewSet):
-    serializer_class = PeriodoSerializer
-    queryset = Periodo.objects.all()
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_class = PeriodoFilter
-    search_fields = ['curso__nombre', 'curso__descripcion']
-    ordering_fields = ['fecha_inicio', 'fecha_finalizacion']
-    ordering = ['fecha_inicio']
-
 class ClaseViewSet(viewsets.ModelViewSet):
     queryset = Clase.objects.all()
     permission_classes = [EsClaseAlterable]
@@ -140,7 +131,7 @@ class ClaseViewSet(viewsets.ModelViewSet):
     filterset_class = ClaseFilter
     search_fields = [
         'descripcion',
-        'periodo__curso__nombre',
+        'curso__nombre',
         'instructor__nombre',
         'instructor__apellido_paterno',
         'instructor__apellido_materno',
@@ -185,7 +176,7 @@ class CuotaViewSet(viewsets.ModelViewSet):
     filterset_class = CuotaFilter
     search_fields = [
         'concepto',
-        'periodo__curso__nombre',
+        'curso__nombre',
     ]
     ordering_fields = ['costo', 'fecha_limite', 'fecha_registro']
     ordering = ['-fecha_registro']
