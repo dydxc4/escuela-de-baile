@@ -192,7 +192,9 @@ class CuotaViewSet(viewsets.ModelViewSet):
             return CuotaListSerializer
         elif self.action == 'retrieve':
             return CuotaReadSerializer
-        return CuotaWriteSerializer
+        elif self.action == 'create':
+            return CuotaCreateSerializer
+        return CuotaUpdateSerializer
 
 class PagoEstudianteViewSet(viewsets.ModelViewSet):
     queryset = PagoEstudiante.objects.all()

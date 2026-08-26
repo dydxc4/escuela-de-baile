@@ -43,6 +43,7 @@ class EstudianteListSerializer(serializers.ModelSerializer):
             'curp',
             'estado_inscripcion',
             'fecha_registro',
+            'contador_clases_restantes',
         ]
 
 class EstudianteSerializer(serializers.ModelSerializer):
@@ -52,6 +53,7 @@ class EstudianteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Estudiante
         fields = '__all__'
+        read_only_fields = ['contador_clases_restantes']
 
 class InstructorListSerializer(serializers.ModelSerializer):
     nombre_completo = serializers.CharField(read_only=True)
@@ -189,10 +191,40 @@ class CuotaReadSerializer(serializers.ModelSerializer):
         fields = '__all__'
         depth = 1
 
-class CuotaWriteSerializer(serializers.ModelSerializer):
+class CuotaCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cuota
         fields = '__all__'
+
+    def validate(self, attrs: dict):
+        tipo = attrs.get('tipo')
+        mes = attrs.get('mes')
+        anio = attrs.get('anio')
+        cantidad_clases = attrs.get('cantidad_clases')
+        periodo = attrs.get('perido')
+
+        # Comprueba si se establecio el tipo de cuota
+        if tipo:
+            # Para mensualidad: mes y año son requeridos
+            if tipo == Cuota.Tipo.MENSUALIDAD and None in [mes, anio]:
+                raise ValidationError({'tipo': 'Una cuota de mensualidad debe definir mes y año'})
+            # Para inscripción: mes o año son requeridos
+            elif tipo == Cuota.Tipo.INSCRIPCION and periodo is None and anio is None:
+                raise ValidationError({'tipo': 'Una cuota de inscripción debe definir año o periodo de curso'})
+            # Para paquete de clases: una cantidad de clases mayor que 1 es requerido
+            elif tipo == Cuota.Tipo.PAQUETE_CLASES:
+                if cantidad_clases is None:
+                    raise ValidationError({'tipo': 'Un paquete de clases debe definir la cantidad de clases'})
+                elif cantidad_clases <= 1:
+                    raise ValidationError({'tipo': 'Un paquete de clases debe definir una cantidad de clases mayor que 1'})
+
+        return attrs
+
+class CuotaUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Cuota
+        fields = '__all__'
+        read_only_fields = ['tipo', 'periodo', 'mes', 'anio']
 
 class PagoEstudianteCuotaSerializer(serializers.ModelSerializer):
     cuota = CuotaListSerializer(read_only=True)
@@ -222,13 +254,13 @@ class PagoEstudianteReadSerializer(serializers.ModelSerializer):
 class PagoEstudianteCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = PagoEstudiante
-        exclude = ['total']
+        fields = '__all__'
         read_only_fields = ['total']
 
 class PagoEstudianteUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = PagoEstudiante
-        exclude = ['estudiante', 'total']
+        fields = '__all__'
         read_only_fields = ['estudiante', 'total']
 
 class PagoInstructorListSerializer(serializers.ModelSerializer):
@@ -250,13 +282,13 @@ class PagoInstructorReadSerializer(serializers.ModelSerializer):
 class PagoInstructorCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = PagoInstructor
-        exclude = ['monto']
+        fields = '__all__'
         read_only_fields = ['monto']
 
 class PagoInstructorUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = PagoInstructor
-        exclude = ['instructor', 'monto']
+        fields = '__all__'
         read_only_fields = ['instructor', 'monto']
 
 class CuotaPagadaReadSerializer(serializers.ModelSerializer):

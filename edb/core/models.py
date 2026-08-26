@@ -1,5 +1,3 @@
-from typing import Iterable
-
 from django.db import models
 from django.core.validators import FileExtensionValidator
 from django_enum import EnumField
@@ -66,6 +64,7 @@ class Estudiante(Persona):
     genero = EnumField(Genero, null=True, blank=True)
     estado_inscripcion = EnumField(Estado, default=Estado.ACTIVO)
     posee_tarjeta_asistencia = models.BooleanField()
+    contador_clases_restantes = models.PositiveIntegerField(default=0)
 
     @property
     def edad(self):
@@ -85,6 +84,10 @@ class Estudiante(Persona):
         elif self.edad < 18:
             return self.RangoEdad.ADOLESCENTE
         return self.RangoEdad.ADULTO
+
+    def save(self, *args, **kwargs):
+        self.curp = self.curp.upper()
+        super().save(*args, **kwargs)
 
 class Tutor(Persona):
     telefono = models.CharField(max_length=20, validators=[phone_number_validator])
@@ -182,22 +185,26 @@ class Cuota(models.Model):
         CLASE_INDIVIDUAL = 'CLASE_INDIVIDUAL', 'Clase individual'
         PAQUETE_CLASES = 'PAQUETE_CLASES', 'Paquete de clases'
 
-    # TODO: agregar campos para mes, año y cantidad_clases
     periodo = models.ForeignKey(Periodo, related_name='cuotas', on_delete=models.CASCADE, null=True, blank=True)
     tipo = EnumField(Tipo)
     concepto = models.CharField(max_length=120, unique=True)
     costo = models.DecimalField(max_digits=8, decimal_places=2, validators=[price_validator])
-    # TODO: cambiar a datefield
-    fecha_limite = models.DateTimeField(null=True, blank=True)
+    cantidad_clases = models.PositiveIntegerField(null=True, blank=True)
+    anio = models.PositiveSmallIntegerField(null=True, blank=True, validators=[validate_year])
+    mes = models.PositiveSmallIntegerField(null=True, blank=True, validators=[validate_month])
+    fecha_limite = models.DateField(null=True, blank=True)
     fecha_registro = models.DateTimeField(auto_now_add=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
     esta_habilitado = models.BooleanField(default=True)
     clases = models.ManyToManyField(Clase, related_name='cuotas', blank=True)
 
-    @property
-    def cantidad_clases(self):
-        resultado = self.clases.aggregate(cantidad=models.Count('id')).get('cantidad')
-        return resultado if resultado else 0
+    def save(self, *args, **kwargs):
+        if self.tipo == self.Tipo.CLASE_INDIVIDUAL:
+            self.cantidad_clases = 1
+        if self.tipo in [self.Tipo.CLASE_INDIVIDUAL, self.Tipo.PAQUETE_CLASES]:
+            self.mes = None
+            self.anio = None
+        super().save(*args, **kwargs)
 
     def __str__(self) -> str:
         return f'{self.concepto}: ${self.costo}'
