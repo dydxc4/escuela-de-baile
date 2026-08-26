@@ -1,0 +1,374 @@
+[
+    {
+        "model": "core.tipodocumento",
+        "pk": 1,
+        "fields": {
+            "nombre": "Acta de Nacimiento"
+        }
+    },
+    {
+        "model": "core.tipodocumento",
+        "pk": 2,
+        "fields": {
+            "nombre": "Identificación Oficial (INE)"
+        }
+    },
+    {
+        "model": "core.salario",
+        "pk": 1,
+        "fields": {
+            "concepto": "Sueldo Fijo Mensual - Tiempo Completo",
+            "monto": "18000.00",
+            "fecha_registro": "2026-01-10T10:00:00Z",
+            "esta_habilitado": true
+        }
+    },
+    {
+        "model": "core.salario",
+        "pk": 2,
+        "fields": {
+            "concepto": "Pago por Hora - Medio Tiempo",
+            "monto": "250.00",
+            "fecha_registro": "2026-01-10T10:30:00Z",
+            "esta_habilitado": true
+        }
+    },
+    {
+        "model": "core.estudiante",
+        "pk": 1,
+        "fields": {
+            "nombre": "Mateo",
+            "apellido_paterno": "García",
+            "apellido_materno": "López",
+            "curp": "GALM080512HDFRRN01",
+            "fecha_nacimiento": "2008-05-12",
+            "genero": "HOMBRE",
+            "estado_inscripcion": "ACTIVO",
+            "posee_tarjeta_asistencia": true,
+            "fecha_registro": "2026-08-15T09:00:00Z"
+        }
+    },
+    {
+        "model": "core.estudiante",
+        "pk": 2,
+        "fields": {
+            "nombre": "Valentina",
+            "apellido_paterno": "Martínez",
+            "apellido_materno": "Hernández",
+            "curp": "MAHV151120MDFRRN02",
+            "fecha_nacimiento": "2015-11-20",
+            "genero": "MUJER",
+            "estado_inscripcion": "PAGO_PENDIENTE",
+            "posee_tarjeta_asistencia": false,
+            "fecha_registro": "2026-08-16T11:15:00Z"
+        }
+    },
+    {
+        "model": "core.estudiante",
+        "pk": 101,
+        "fields": {
+            "nombre": "Ignacio",
+            "apellido_paterno": "Varga",
+            "apellido_materno": "Cruz",
+            "telefono": "664-111-2233",
+            "correo_electronico": "nacho.varga@email.com",
+            "curp": "VACI900514HBCRRN09",
+            "fecha_nacimiento": "1990-05-14",
+            "genero": "HOMBRE",
+            "estado_inscripcion": "ACTIVO",
+            "posee_tarjeta_asistencia": true,
+            "fecha_registro": "2026-08-01T08:00:00Z"
+        }
+    },
+    {
+        "model": "core.estudiante",
+        "pk": 102,
+        "fields": {
+            "nombre": "Eduardo",
+            "apellido_paterno": "Salamanca",
+            "apellido_materno": "Guzmán",
+            "telefono": "664-555-8899",
+            "correo_electronico": "lalo.salamanca@email.com",
+            "curp": "SAGE850910HBCRRM02",
+            "fecha_nacimiento": "1985-09-10",
+            "genero": "HOMBRE",
+            "estado_inscripcion": "BAJA",
+            "posee_tarjeta_asistencia": false,
+            "fecha_registro": "2026-08-02T10:15:00Z"
+        }
+    },
+    {
+        "model": "core.estudiante",
+        "pk": 103,
+        "fields": {
+            "nombre": "Kimberly",
+            "apellido_paterno": "Wexler",
+            "apellido_materno": "Mora",
+            "telefono": "664-777-1122",
+            "correo_electronico": "kim.wexler@email.com",
+            "curp": "WEMK881205MBCRRN01",
+            "fecha_nacimiento": "1988-12-05",
+            "genero": "MUJER",
+            "estado_inscripcion": "ACTIVO",
+            "posee_tarjeta_asistencia": true,
+            "fecha_registro": "2026-08-05T09:30:00Z"
+        }
+    },
+    {
+        "model": "core.estudiante",
+        "pk": 104,
+        "fields": {
+            "nombre": "Carlos",
+            "apellido_paterno": "McGill",
+            "apellido_materno": "Ríos",
+            "telefono": "664-222-3344",
+            "correo_electronico": "chuck.mcgill@email.com",
+            "curp": "MGRC600120HBCRRN05",
+            "fecha_nacimiento": "1960-01-20",
+            "genero": "HOMBRE",
+            "estado_inscripcion": "PAGO_PENDIENTE",
+            "posee_tarjeta_asistencia": true,
+            "fecha_registro": "2026-08-08T14:45:00Z"
+        }
+    },
+    {
+        "model": "core.estudiante",
+        "pk": 105,
+        "fields": {
+            "nombre": "Walterio",
+            "apellido_paterno": "Blanco",
+            "apellido_materno": "García",
+            "telefono": "664-333-9900",
+            "correo_electronico": "walter.blanco@email.com",
+            "curp": "BAGW700907HBCRRN08",
+            "fecha_nacimiento": "1970-09-07",
+            "genero": "HOMBRE",
+            "estado_inscripcion": "ACTIVO",
+            "posee_tarjeta_asistencia": true,
+            "fecha_registro": "2026-08-10T16:20:00Z"
+        }
+    },
+    {
+        "model": "core.tutor",
+        "pk": 1,
+        "fields": {
+            "nombre": "Carlos",
+            "apellido_paterno": "Martínez",
+            "apellido_materno": "Pérez",
+            "telefono": "333-111-2233",
+            "correo_electronico": "carlos.mtz.tutor@email.com",
+            "fecha_registro": "2026-08-16T11:00:00Z"
+        }
+    },
+    {
+        "model": "core.tutor",
+        "pk": 101,
+        "fields": {
+            "nombre": "Héctor",
+            "apellido_paterno": "Salamanca",
+            "apellido_materno": null,
+            "telefono": "664-999-8877",
+            "correo_electronico": "tio.hector@email.com",
+            "fecha_registro": "2026-08-01T07:45:00Z"
+        }
+    },
+    {
+        "model": "core.tutor",
+        "pk": 102,
+        "fields": {
+            "nombre": "Miguel",
+            "apellido_paterno": "Armendáriz",
+            "apellido_materno": "López",
+            "telefono": "664-888-7766",
+            "correo_electronico": "mike.armendariz@email.com",
+            "fecha_registro": "2026-08-05T09:00:00Z"
+        }
+    },
+    {
+        "model": "core.tutor",
+        "pk": 103,
+        "fields": {
+            "nombre": "Santiago",
+            "apellido_paterno": "Bueno",
+            "apellido_materno": "Arturo",
+            "telefono": "664-777-6655",
+            "correo_electronico": "jimmy.bueno@email.com",
+            "fecha_registro": "2026-08-08T14:30:00Z"
+        }
+    },
+    {
+        "model": "core.instructor",
+        "pk": 1,
+        "fields": {
+            "nombre": "Ana",
+            "apellido_paterno": "Sánchez",
+            "apellido_materno": "Gómez",
+            "salario": 1,
+            "telefono": "5559-998-877",
+            "correo_electronico": "ana.instructor@escuela.mx",
+            "esta_habilitado": true,
+            "fecha_registro": "2026-08-08T14:31:00Z"
+        }
+    },
+    {
+        "model": "core.tutorestudiante",
+        "pk": 1,
+        "fields": {
+            "tutor": 1,
+            "estudiante": 2,
+            "parentesco": "PADRE"
+        }
+    },
+    {
+        "model": "core.tutorestudiante",
+        "pk": 101,
+        "fields": {
+            "tutor": 101,
+            "estudiante": 102,
+            "parentesco": "TIO"
+        }
+    },
+    {
+        "model": "core.tutorestudiante",
+        "pk": 102,
+        "fields": {
+            "tutor": 101,
+            "estudiante": 101,
+            "parentesco": "TUTOR_LEGAL"
+        }
+    },
+    {
+        "model": "core.tutorestudiante",
+        "pk": 103,
+        "fields": {
+            "tutor": 102,
+            "estudiante": 103,
+            "parentesco": "ABUELO"
+        }
+    },
+    {
+        "model": "core.tutorestudiante",
+        "pk": 104,
+        "fields": {
+            "tutor": 103,
+            "estudiante": 104,
+            "parentesco": "HERMANO"
+        }
+    },
+    {
+        "model": "core.curso",
+        "pk": 1,
+        "fields": {
+            "nombre": "Inglés Conversacional Avanzado",
+            "descripcion": "Desarrollo de fluidez oral en el idioma inglés.",
+            "esta_habilitado": true,
+            "fecha_creacion": "2026-07-01T09:00:00Z"
+        }
+    },
+    {
+        "model": "core.curso",
+        "pk": 2,
+        "fields": {
+            "nombre": "Robótica Básica para Niños",
+            "descripcion": "Introducción a la lógica de programación y electrónica básica.",
+            "esta_habilitado": true,
+            "fecha_creacion": "2026-07-05T10:00:00Z"
+        }
+    },
+    {
+        "model": "core.periodo",
+        "pk": 1,
+        "fields": {
+            "curso": 1,
+            "fecha_inicio": "2026-08-01",
+            "fecha_finalizacion": "2026-12-15"
+        }
+    },
+    {
+        "model": "core.clase",
+        "pk": 1,
+        "fields": {
+            "periodo": 1,
+            "instructor": 1,
+            "fecha_hora": "2026-08-05T18:00:00Z",
+            "duracion": "02:00:00",
+            "descripcion": "Presentación y evaluación diagnóstica",
+            "estado": "COMPLETADA"
+        }
+    },
+    {
+        "model": "core.claseestudiante",
+        "pk": 1,
+        "fields": {
+            "clase": 1,
+            "estudiante": 1,
+            "fecha_registro": "2026-08-05T17:50:00Z",
+            "asistio": true
+        }
+    },
+    {
+        "model": "core.cuota",
+        "pk": 1,
+        "fields": {
+            "periodo": 1,
+            "tipo": "INSCRIPCION",
+            "concepto": "Inscripción Curso Inglés 2026",
+            "costo": "800.00",
+            "fecha_limite": "2026-08-31",
+            "mes": 8,
+            "anio": 2026,
+            "cantidad_clases": 0,
+            "fecha_registro": "2026-07-15T12:00:00Z",
+            "fecha_actualizacion": "2026-07-15T12:00:00Z",
+            "esta_habilitado": true
+        }
+    },
+    {
+        "model": "core.cuota",
+        "pk": 2,
+        "fields": {
+            "periodo": 1,
+            "tipo": "MENSUALIDAD",
+            "concepto": "Mensualidad Septiembre Inglés",
+            "costo": "1200.00",
+            "fecha_limite": "2026-08-05",
+            "mes": 9,
+            "anio": 2026,
+            "cantidad_clases": 0,
+            "fecha_registro": "2026-08-01T12:00:00Z",
+            "fecha_actualizacion": "2026-08-01T12:00:00Z",
+            "esta_habilitado": true
+        }
+    },
+    {
+        "model": "core.pagoestudiante",
+        "pk": 1,
+        "fields": {
+            "estudiante": 1,
+            "fecha_registro": "2026-08-20T14:00:00Z",
+            "fecha_confirmacion": "2026-08-21T10:00:00Z",
+            "total": "800.00",
+            "estado": "COMPLETADO"
+        }
+    },
+    {
+        "model": "core.pagoinstructor",
+        "pk": 1,
+        "fields": {
+            "instructor": 1,
+            "salario": 1,
+            "fecha_registro": "2026-08-30T18:00:00Z",
+            "monto": "18000.00",
+            "esta_confirmado": true
+        }
+    },
+    {
+        "model": "core.cuotapagada",
+        "pk": 1,
+        "fields": {
+            "cuota": 1,
+            "pago": 1,
+            "monto": "800.00"
+        }
+    }
+]
