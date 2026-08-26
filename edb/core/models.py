@@ -182,22 +182,14 @@ class Cuota(models.Model):
     concepto = models.CharField(max_length=120, unique=True)
     costo = models.DecimalField(max_digits=8, decimal_places=2, validators=[price_validator])
     cantidad_clases = models.PositiveIntegerField(null=True, blank=True)
-    anio = models.PositiveSmallIntegerField(null=True, blank=True, validators=[validate_year])
-    mes = models.PositiveSmallIntegerField(null=True, blank=True, validators=[validate_month])
     fecha_limite = models.DateField(null=True, blank=True)
     fecha_registro = models.DateTimeField(auto_now_add=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
     esta_habilitado = models.BooleanField(default=True)
-    clases = models.ManyToManyField(Clase, related_name='cuotas', blank=True)
 
     def save(self, *args, **kwargs):
         if self.tipo == self.Tipo.CLASE_INDIVIDUAL:
             self.cantidad_clases = 1
-        if self.tipo in [self.Tipo.CLASE_INDIVIDUAL, self.Tipo.PAQUETE_CLASES]:
-            self.mes = None
-            self.anio = None
-        else:
-            self.cantidad_clases = None
         super().save(*args, **kwargs)
 
     def __str__(self) -> str:

@@ -164,12 +164,9 @@ class CuotaListSerializer(serializers.ModelSerializer):
         exclude = [
             'fecha_registro',
             'fecha_actualizacion',
-            'clases'
         ]
 
 class CuotaReadSerializer(serializers.ModelSerializer):
-    clases = ClaseListSerializer(many=True, read_only=True)
-
     class Meta:
         model = Cuota
         fields = '__all__'
@@ -182,28 +179,23 @@ class CuotaCreateSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs: dict):
         tipo = attrs.get('tipo')
-        mes = attrs.get('mes')
-        anio = attrs.get('anio')
         cantidad_clases = attrs.get('cantidad_clases')
-        clases = attrs.get('clases')
         curso = attrs.get('curso')
+        fecha_limite = attrs.get('fecha_limite')
 
         # Comprueba si se establecio el tipo de cuota
         if tipo:
-            # Para mensualidad: requiere de mes y año
-            if tipo == Cuota.Tipo.MENSUALIDAD and None in [mes, anio]:
-                raise ValidationError({'tipo': 'Una cuota de mensualidad debe definir mes y año'})
-            # Para inscripción: requiere de mes o año
-            elif tipo == Cuota.Tipo.INSCRIPCION and curso is None and anio is None:
-                raise ValidationError({'tipo': 'Una cuota de inscripción debe definir año o curso'})
+            # Para mensualidad: requiere de fecha límite
+            if tipo == Cuota.Tipo.MENSUALIDAD and fecha_limite is None:
+                raise ValidationError({'tipo': 'Una cuota de mensualidad debe definir una fecha límite'})
+            # Para inscripción: requiere de un curso
+            elif tipo == Cuota.Tipo.INSCRIPCION and curso is None:
+                raise ValidationError({'tipo': 'Una cuota de inscripción debe asociarse a un curso'})
             # Para clase individual: requiere una sola clase
-            elif tipo == Cuota.Tipo.CLASE_INDIVIDUAL and clases is not None and len(clases) > 1:
+            elif tipo == Cuota.Tipo.CLASE_INDIVIDUAL and cantidad_clases is not None and cantidad_clases > 1:
                 raise ValidationError({'tipo': 'Una cuota de clase no debe contener más de una'})
             # Para paquete de clases: requiere de una cantidad de clases mayor que 1
             elif tipo == Cuota.Tipo.PAQUETE_CLASES:
-                if clases is not None:
-                    cantidad_clases = len(clases)
-
                 if cantidad_clases is None:
                     raise ValidationError({'tipo': 'Un paquete de clases debe definir la cantidad de clases'})
                 elif cantidad_clases <= 1:
@@ -215,7 +207,7 @@ class CuotaUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cuota
         fields = '__all__'
-        read_only_fields = ['tipo', 'curso', 'mes', 'anio']
+        read_only_fields = ['tipo', 'curso']
 
 class PagoEstudianteCuotaSerializer(serializers.ModelSerializer):
     cuota = CuotaListSerializer(read_only=True)
