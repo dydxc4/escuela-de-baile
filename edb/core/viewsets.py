@@ -258,10 +258,31 @@ class AlertaEstudianteViewSet(viewsets.ModelViewSet):
     queryset = AlertaEstudiante.objects.all()
     serializer_class = AlertaEstudianteSerializer
     http_method_names = ['get', 'post', 'delete', 'head', 'options']
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = AlertaEstudianteFilter
+    ordering_fields = [
+        'fecha',
+    ]
+    ordering = ['-fecha']
 
 class RegistroDiarioListView(generics.ListAPIView):
     queryset = RegistroDiario.objects.all()
     serializer_class = RegistroDiarioSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = RegistroDiarioFilter
+    ordering_fields = [
+        'fecha',
+        'total_ingresos',
+        'total_egresos',
+        'total_ganancias',
+        'total_perdidas',
+        'cantidad_transacciones',
+        'cantidad_ventas',
+        'cantidad_cancelaciones',
+        'cantidad_devoluciones',
+        'cantidad_salarios',
+    ]
+    ordering = ['-fecha']
 
 class RegistroDiarioReadView(generics.RetrieveAPIView):
     serializer_class = RegistroDiarioSerializer
