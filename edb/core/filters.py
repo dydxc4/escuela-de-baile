@@ -132,16 +132,6 @@ class DocumentoFilter(django_filters.FilterSet):
             'fecha_subida': ['date__lte', 'date__gte', 'date__exact']
         }
 
-class AlertaEstudianteFilter(django_filters.FilterSet):
-    estudiante = django_filters.ModelChoiceFilter(queryset=Estudiante.objects.all())
-    tipo = django_filters.ChoiceFilter(choices=AlertaEstudiante.Tipo)
-
-    class Meta:
-        model = AlertaEstudiante
-        fields = {
-            'fecha': ['date__lte', 'date__gte', 'date__exact'],
-        }
-
 class RegistroDiarioFilter(django_filters.FilterSet):
     class Meta:
         model = RegistroDiario

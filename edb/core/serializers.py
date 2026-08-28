@@ -379,11 +379,6 @@ class DocumentoUpdateSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ['id', 'estudiante', 'instructor', 'pago', 'archivo']
 
-class AlertaEstudianteSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = AlertaEstudiante
-        fields = '__all__'
-
 class ConfiguracionSerializer(serializers.ModelSerializer):
     edad_max_ninio = serializers.IntegerField(min_value=2, max_value=18, default=12)
     edad_min_adulto = serializers.IntegerField(min_value=10, max_value=120, default=18)

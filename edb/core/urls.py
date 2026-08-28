@@ -18,7 +18,6 @@ router.register(r'cuotas', CuotaViewSet, basename='cuota')
 router.register(r'pago_estudiantes', PagoEstudianteViewSet, basename='pago_estudiante')
 router.register(r'pago_instructores', PagoInstructorViewSet, basename='pago_instructor')
 router.register(r'documentos', DocumentoViewSet, basename='documento')
-router.register(r'alertas_estudiantes', AlertaEstudianteViewSet, basename='alerta_estudiante')
 
 urlpatterns = [
     path('', include(router.urls)),

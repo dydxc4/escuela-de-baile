@@ -257,17 +257,6 @@ class DocumentoViewSet(viewsets.ModelViewSet):
             return DocumentoCreateSerializer
         return DocumentoUpdateSerializer
 
-class AlertaEstudianteViewSet(viewsets.ModelViewSet):
-    queryset = AlertaEstudiante.objects.all()
-    serializer_class = AlertaEstudianteSerializer
-    http_method_names = ['get', 'post', 'delete', 'head', 'options']
-    filter_backends = [DjangoFilterBackend, OrderingFilter]
-    filterset_class = AlertaEstudianteFilter
-    ordering_fields = [
-        'fecha',
-    ]
-    ordering = ['-fecha']
-
 class RegistroDiarioListView(generics.ListAPIView):
     queryset = RegistroDiario.objects.all()
     serializer_class = RegistroDiarioSerializer

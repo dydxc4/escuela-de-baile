@@ -311,20 +311,6 @@ class Documento(models.Model):
     def __str__(self) -> str:
         return f'Documento #{self.pk}: {self.archivo.name} ({self.fecha_subida})'
 
-class AlertaEstudiante(models.Model):
-    class Tipo(models.TextChoices):
-        MENSUALIDAD_VENCIDA = 'MENSUALIDAD_VENCIDA', 'Mensualidad vencida'
-        MENSUALIDAD_PROXIMA = 'MENSUALIDAD_PROXIMA', 'Mensualidad próxima a vencer'
-        CLASES_AGOTADAS = 'CLASES_AGOTADAS', 'Sin clases restantes'
-
-    estudiante = models.ForeignKey(Estudiante, related_name='alertas', on_delete=models.CASCADE)
-    tipo = EnumField(Tipo)
-    fecha = models.DateTimeField(auto_now_add=True)
-    descripcion = models.TextField(max_length=120, null=True, blank=True)
-
-    def __str__(self) -> str:
-        return f'{self.estudiante} ({self.fecha.date()}): {self.tipo}'
-
 # Modelos independientes
 
 class Configuracion(models.Model):
@@ -332,8 +318,6 @@ class Configuracion(models.Model):
     edad_min_adulto = models.PositiveSmallIntegerField(default=18)
     margen_antes_fin_vigencia = models.PositiveSmallIntegerField(default=10)
     intervalo_comprobacion = models.PositiveIntegerField(default=24)
-    alertar_fin_mensualidad = models.BooleanField(default=True)
-    alertar_clases_agotadas = models.BooleanField(default=True)
 
     def save(self, *args, **kwargs):
         self.pk = 1
