@@ -39,6 +39,14 @@ class TutorSerializer(serializers.ModelSerializer):
         model = Tutor
         fields = '__all__'
 
+class TutorEstudianteSerializer(serializers.ModelSerializer):
+    tutor = TutorListSerializer(read_only=True)
+
+    class Meta:
+        model = TutorEstudiante
+        exclude = ['estudiante']
+        depth = 1
+
 class EstudianteListSerializer(serializers.ModelSerializer):
     nombre_completo = serializers.CharField(read_only=True)
     edad = serializers.IntegerField(read_only=True)
@@ -57,17 +65,6 @@ class EstudianteListSerializer(serializers.ModelSerializer):
             'fecha_registro',
             'contador_clases_restantes',
         ]
-
-class EstudianteSerializer(serializers.ModelSerializer):
-    edad = serializers.IntegerField(read_only=True)
-    rango_edad = serializers.CharField(read_only=True)
-    mensualidades = MensualidadSerializer(many=True, read_only=True)
-    esta_al_corriente = serializers.BooleanField(read_only=True)
-
-    class Meta:
-        model = Estudiante
-        fields = '__all__'
-        read_only_fields = ['contador_clases_restantes']
 
 class InstructorListSerializer(serializers.ModelSerializer):
     nombre_completo = serializers.CharField(read_only=True)
@@ -184,6 +181,27 @@ class ClaseEstudianteCreateSerializer(serializers.ModelSerializer):
 class ClaseEstudianteUpdateSerializer(ClaseEstudianteCreateSerializer   ):
     class Meta(ClaseEstudianteCreateSerializer.Meta):
         read_only_fields = ['clase', 'estudiante']
+
+class ClaseEstudianteSerializer(serializers.ModelSerializer):
+    clase = ClaseListSerializer(read_only=True)
+
+    class Meta:
+        model = ClaseEstudiante
+        exclude = ['estudiante']
+        depth = 1
+
+class EstudianteSerializer(serializers.ModelSerializer):
+    edad = serializers.IntegerField(read_only=True)
+    rango_edad = serializers.CharField(read_only=True)
+    mensualidades = MensualidadSerializer(many=True, read_only=True)
+    esta_al_corriente = serializers.BooleanField(read_only=True)
+    tutores = TutorEstudianteSerializer(source='tutores_estudiante', many=True, read_only=True)
+    clases = ClaseEstudianteSerializer(source='clases_estudiante', many=True, read_only=True)
+
+    class Meta:
+        model = Estudiante
+        fields = '__all__'
+        read_only_fields = ['contador_clases_restantes']
 
 class CuotaListSerializer(serializers.ModelSerializer):
     nombre_curso = serializers.CharField(source='curso.nombre', read_only=True)
