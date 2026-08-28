@@ -1,4 +1,4 @@
-from rest_framework import viewsets, parsers
+from rest_framework import viewsets, parsers, generics
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from .serializers import *
@@ -253,3 +253,24 @@ class DocumentoViewSet(viewsets.ModelViewSet):
         elif self.action == 'create':
             return DocumentoCreateSerializer
         return DocumentoUpdateSerializer
+
+class AlertaEstudianteViewSet(viewsets.ModelViewSet):
+    queryset = AlertaEstudiante.objects.all()
+    serializer_class = AlertaEstudianteSerializer
+    http_method_names = ['get', 'post', 'delete', 'head', 'options']
+
+class RegistroDiarioListView(generics.ListAPIView):
+    queryset = RegistroDiario.objects.all()
+    serializer_class = RegistroDiarioSerializer
+
+class RegistroDiarioReadView(generics.RetrieveAPIView):
+    serializer_class = RegistroDiarioSerializer
+
+    def get_object(self):
+        return RegistroDiario.load()
+
+class ConfiguracionView(generics.RetrieveUpdateAPIView):
+    serializer_class = ConfiguracionSerializer
+
+    def get_object(self):
+        return Configuracion.load()

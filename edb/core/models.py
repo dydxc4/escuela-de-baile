@@ -1,3 +1,5 @@
+from typing import Iterable
+from datetime import timedelta
 from django.db import models
 from django.core.validators import FileExtensionValidator
 from django_enum import EnumField
@@ -87,20 +89,31 @@ class Estudiante(Persona):
 
     @property
     def rango_edad(self) -> RangoEdad:
-        # TODO: remplazar por valores establecidos en configuración
-        if self.edad <= 13:
+        # Obtiene los rangos de edades directamente de la base de datos
+        config = Configuracion.load()
+
+        if self.edad <= config.edad_max_ninio:
             return self.RangoEdad.NINIO
-        elif self.edad < 18:
+        elif self.edad < config.edad_min_adulto:
             return self.RangoEdad.ADOLESCENTE
         return self.RangoEdad.ADULTO
 
     @property
-    def esta_al_corriente(self):
+    def esta_al_corriente(self) -> bool:
         hoy = timezone.now().date()
         vigencia = self.mensualidades \
             .aggregate(vigencia=models.Max('fecha_vigencia'))['vigencia']
-
         return vigencia is not None and vigencia >= hoy
+
+    @property
+    def mensualidad_proxima_a_vencer(self) -> bool:
+        config = Configuracion.load()
+        hoy = timezone.now().date()
+        margen = hoy + timedelta(days=config.margen_antes_fin_vigencia)
+        result = self.mensualidades \
+            .filter(fecha_vigencia__range=(hoy, margen)) \
+            .exists()
+        return result
 
     def save(self, *args, **kwargs):
         self.curp = self.curp.upper()
@@ -278,7 +291,7 @@ class MensualidadPagada(models.Model):
         return timezone.now().date() <= self.fecha_vigencia
 
     def __str__(self) -> str:
-        return f'{self.estudiante}: pagada {self.pago.fecha_registro}, vigencia {self.fecha_vigencia}'
+        return f'{self.estudiante}: pagada {self.pago.fecha_registro.date()}, vigencia {self.fecha_vigencia}'
 
 class Documento(models.Model):
     estudiante = models.ForeignKey(Estudiante, related_name='documentos', on_delete=models.CASCADE, null=True, blank=True)
@@ -297,3 +310,64 @@ class Documento(models.Model):
 
     def __str__(self) -> str:
         return f'Documento #{self.pk}: {self.archivo.name} ({self.fecha_subida})'
+
+class AlertaEstudiante(models.Model):
+    class Tipo(models.TextChoices):
+        MENSUALIDAD_VENCIDA = 'MENSUALIDAD_VENCIDA', 'Mensualidad vencida'
+        MENSUALIDAD_PROXIMA = 'MENSUALIDAD_PROXIMA', 'Mensualidad próxima a vencer'
+        CLASES_AGOTADAS = 'CLASES_AGOTADAS', 'Sin clases restantes'
+
+    estudiante = models.ForeignKey(Estudiante, related_name='alertas', on_delete=models.CASCADE)
+    tipo = EnumField(Tipo)
+    fecha = models.DateTimeField(auto_now_add=True)
+    descripcion = models.TextField(max_length=120, null=True, blank=True)
+
+    def __str__(self) -> str:
+        return f'{self.estudiante} ({self.fecha.date()}): {self.tipo}'
+
+# Modelos independientes
+
+class Configuracion(models.Model):
+    edad_max_ninio = models.PositiveSmallIntegerField(default=12)
+    edad_min_adulto = models.PositiveSmallIntegerField(default=18)
+    margen_antes_fin_vigencia = models.PositiveSmallIntegerField(default=10)
+    intervalo_comprobacion = models.PositiveIntegerField(default=24)
+    alertar_fin_mensualidad = models.BooleanField(default=True)
+    alertar_clases_agotadas = models.BooleanField(default=True)
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        pass
+
+    @classmethod
+    def load(cls):
+        obj, created = cls.objects.get_or_create(pk=1)
+        return obj
+
+class RegistroDiario(models.Model):
+    fecha = models.DateField(auto_now_add=True, unique=True)
+    total_ingresos = models.DecimalField(max_digits=8, decimal_places=2, default=0.0)
+    total_egresos = models.DecimalField(max_digits=8, decimal_places=2, default=0.0)
+    total_ganancias = models.DecimalField(max_digits=8, decimal_places=2, default=0.0)
+    total_perdidas = models.DecimalField(max_digits=8, decimal_places=2, default=0.0)
+    cantidad_transacciones = models.PositiveIntegerField(default=0)
+    cantidad_ventas = models.PositiveIntegerField(default=0)
+    cantidad_cancelaciones = models.PositiveIntegerField(default=0)
+    cantidad_devoluciones = models.PositiveIntegerField(default=0)
+    cantidad_salarios = models.PositiveIntegerField(default=0)
+
+    @classmethod
+    def load(cls):
+        hoy = timezone.now().date()
+        obj, created = cls.objects.get_or_create(fecha=hoy)
+        return obj
+
+    def save(self, *args, **kwargs):
+        self.total_ganancias = self.total_ingresos - self.total_egresos
+        return super().save(*args, **kwargs)
+
+    def __str__(self) -> str:
+        return f'{self.fecha} | ingresos ${self.total_ingresos} | egresos: ${self.total_egresos}'

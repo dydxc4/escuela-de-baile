@@ -195,6 +195,7 @@ class EstudianteSerializer(serializers.ModelSerializer):
     rango_edad = serializers.CharField(read_only=True)
     mensualidades = MensualidadSerializer(many=True, read_only=True)
     esta_al_corriente = serializers.BooleanField(read_only=True)
+    mensualidad_proxima_a_vencer = serializers.BooleanField(read_only=True)
     tutores = TutorEstudianteSerializer(source='tutores_estudiante', many=True, read_only=True)
     clases = ClaseEstudianteSerializer(source='clases_estudiante', many=True, read_only=True)
 
@@ -377,3 +378,24 @@ class DocumentoUpdateSerializer(serializers.ModelSerializer):
         model = Documento
         fields = '__all__'
         read_only_fields = ['id', 'estudiante', 'instructor', 'pago', 'archivo']
+
+class AlertaEstudianteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AlertaEstudiante
+        fields = '__all__'
+
+class ConfiguracionSerializer(serializers.ModelSerializer):
+    edad_max_ninio = serializers.IntegerField(min_value=2, max_value=18, default=12)
+    edad_min_adulto = serializers.IntegerField(min_value=10, max_value=120, default=18)
+    margen_antes_fin_vigencia = serializers.IntegerField(max_value=21, default=10)
+    intervalo_comprobacion = serializers.IntegerField(max_value=168, default=24)
+
+    class Meta:
+        model = Configuracion
+        exclude = ['id']
+        read_only_fields = ['id']
+
+class RegistroDiarioSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RegistroDiario
+        exclude = ['id']
