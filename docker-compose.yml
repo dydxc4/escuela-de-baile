@@ -1,4 +1,23 @@
 services:
+  backend: # API REST (Django + DRF)
+    build: .
+    container_name: edb-backend
+    restart: unless-stopped
+    command: gunicorn edb.wsgi:application --bind 0.0.0.0:8000 --workers 3
+    volumes:
+      - edb-documents:/app/documents # Directorio para los documentos
+    ports:
+      - "127.0.0.1:8000:8000"
+    networks:
+      - edb-network
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - DB_HOST=db
+      - DB_NAME=edb
+      - DB_USER=root
+      - DB_PASS=edb-root-pwd
   db:
     image: mysql:lts
     container_name: edb-db
@@ -8,8 +27,6 @@ services:
       MYSQL_USER: 'edb'
       MYSQL_PASSSWORD: 'edb-password'
       MYSQL_DATABASE: 'edb'
-    ports:
-      - 127.0.0.1:3306:3306
     volumes:
       - edb-db:/var/lib/mysql
     healthcheck:
@@ -17,12 +34,20 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - edb-network
   adminer:
     image: adminer
     container_name: edb-adminer
     restart: unless-stopped
     ports:
       - 127.0.0.1:8001:8080
+    networks:
+      - edb-network
 
 volumes:
   edb-db:
+  edb-documents:
+
+networks:
+  edb-network:
