@@ -40,9 +40,9 @@ def update_registro_transacciones_trigger(sender, instance, **kwargs):
 def update_registro_salarios_trigger(sender, instance: PagoInstructor, **kwargs):
     if instance.esta_confirmado:
         registro = RegistroDiario.load()
-        registro.total_egresos = instance.monto
+        registro.egreso_total = instance.monto
         registro.cantidad_salarios += 1
-        registro.save(update_fields=['total_egresos', 'cantidad_salarios'])
+        registro.save(update_fields=['egreso_total', 'cantidad_salarios', 'ganancia_total'])
 
 @receiver(post_save, sender=PagoEstudiante)
 def update_contador_clases_trigger(sender, instance: PagoEstudiante, **kwargs):
@@ -63,17 +63,18 @@ def update_contador_clases_trigger(sender, instance: PagoEstudiante, **kwargs):
         elif instance.cuota.tipo == Cuota.Tipo.MENSUALIDAD:
             set_mensualidad(instance)
 
-        registro.total_ingresos += instance.monto
+        registro.ingreso_total += instance.monto
         registro.cantidad_ventas += 1
-        registro.save(update_fields=['total_ingresos', 'cantidad_ventas'])
+        registro.ticket_promedio = registro.ingreso_total / registro.cantidad_ventas
+        registro.save(update_fields=['ingreso_total', 'cantidad_ventas', 'ticket_promedio', 'ganancia_total'])
     elif instance.estado == PagoEstudiante.Estado.DEVUELTO:
         registro.cantidad_devoluciones += 1
-        registro.total_perdidas += instance.monto
-        registro.save(update_fields=['cantidad_devoluciones', 'total_perdidas'])
+        registro.perdida_total += instance.monto
+        registro.save(update_fields=['cantidad_devoluciones', 'perdida_total', 'ganancia_total'])
     elif instance.estado == PagoEstudiante.Estado.CANCELADO:
         registro.cantidad_cancelaciones += 1
-        registro.total_perdidas += instance.monto
-        registro.save(update_fields=['cantidad_cancelaciones', 'total_perdidas'])
+        registro.perdida_total += instance.monto
+        registro.save(update_fields=['cantidad_cancelaciones', 'perdida_total', 'ganancia_total'])
 
 @receiver(post_save, sender=ClaseEstudiante)
 def substract_contador_clases_trigger(sender, instance: ClaseEstudiante, **kwargs):

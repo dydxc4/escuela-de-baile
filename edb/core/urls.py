@@ -24,5 +24,7 @@ urlpatterns = [
     path('', include(router.urls)),
     path('registros', RegistroDiarioListView.as_view(), name='registros'),
     path('registros/hoy', RegistroDiarioReadView.as_view(), name='registros_hoy'),
+    path('registros/semana', RegistroSemanalView.as_view(), name='registros_semana'),
+    path('registros/mes', RegistroMensualView.as_view(), name='registros_mes'),
     path('configuracion', ConfiguracionView.as_view(), name='configuracion'),
 ]

@@ -349,10 +349,11 @@ class Configuracion(models.Model):
 
 class RegistroDiario(models.Model):
     fecha = models.DateField(auto_now_add=True, unique=True)
-    total_ingresos = models.DecimalField(max_digits=8, decimal_places=2, default=0.0)
-    total_egresos = models.DecimalField(max_digits=8, decimal_places=2, default=0.0)
-    total_ganancias = models.DecimalField(max_digits=8, decimal_places=2, default=0.0)
-    total_perdidas = models.DecimalField(max_digits=8, decimal_places=2, default=0.0)
+    ingreso_total = models.DecimalField(max_digits=8, decimal_places=2, default=0.0)
+    egreso_total = models.DecimalField(max_digits=8, decimal_places=2, default=0.0)
+    ganancia_total = models.DecimalField(max_digits=8, decimal_places=2, default=0.0)
+    perdida_total = models.DecimalField(max_digits=8, decimal_places=2, default=0.0)
+    ticket_promedio = models.DecimalField(max_digits=8, decimal_places=2, default=0.0)
     cantidad_transacciones = models.PositiveIntegerField(default=0)
     cantidad_ventas = models.PositiveIntegerField(default=0)
     cantidad_cancelaciones = models.PositiveIntegerField(default=0)
@@ -366,8 +367,8 @@ class RegistroDiario(models.Model):
         return obj
 
     def save(self, *args, **kwargs):
-        self.total_ganancias = self.total_ingresos - self.total_egresos
-        return super().save(*args, **kwargs)
+        self.ganancia_total = self.ingreso_total - self.egreso_total
+        super().save(*args, **kwargs)
 
     def __str__(self) -> str:
-        return f'{self.fecha} | ingresos ${self.total_ingresos} | egresos: ${self.total_egresos}'
+        return f'{self.fecha}: ingresos ${self.ingreso_total}, egresos: ${self.egreso_total}'

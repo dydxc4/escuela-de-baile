@@ -1,5 +1,8 @@
 from rest_framework import viewsets, parsers, generics
+from rest_framework.views import APIView
+from rest_framework.response import Response
 from rest_framework.filters import SearchFilter, OrderingFilter
+from django.db.models import functions
 from django_filters.rest_framework import DjangoFilterBackend
 from .serializers import *
 from .filters import *
@@ -272,10 +275,11 @@ class RegistroDiarioListView(generics.ListAPIView):
     filterset_class = RegistroDiarioFilter
     ordering_fields = [
         'fecha',
-        'total_ingresos',
-        'total_egresos',
-        'total_ganancias',
-        'total_perdidas',
+        'ingreso_total',
+        'egreso_total',
+        'ganancia_total',
+        'perdida_total',
+        'ticket_promedio',
         'cantidad_transacciones',
         'cantidad_ventas',
         'cantidad_cancelaciones',
@@ -289,6 +293,54 @@ class RegistroDiarioReadView(generics.RetrieveAPIView):
 
     def get_object(self):
         return RegistroDiario.load()
+
+class RegistroSemanalView(APIView):
+    def get(self, request):
+        queryset = RegistroDiario.objects.all()
+        reporte = (
+            queryset
+            .annotate(
+                semana=functions.TruncWeek('fecha'),
+            )
+            .values('semana')
+            .annotate(
+                cantidad_ventas=models.Sum('cantidad_ventas'),
+                cantidad_devoluciones=models.Sum('cantidad_devoluciones'),
+                cantidad_cancelaciones=models.Sum('cantidad_cancelaciones'),
+                ingresos=models.Sum('ingreso_total'),
+                egresos=models.Sum('egreso_total'),
+                ganancias=models.Sum('ganancia_total'),
+                perdidas=models.Sum('perdida_total'),
+                ticket_promedio_diario=models.Avg('ticket_promedio'),
+            )
+            .order_by('-semana')
+        )
+
+        return Response(reporte)
+
+class RegistroMensualView(APIView):
+    def get(self, request):
+        queryset = RegistroDiario.objects.all()
+        reporte = (
+            queryset
+            .annotate(
+                mes=functions.TruncMonth('fecha'),
+            )
+            .values('mes')
+            .annotate(
+                cantidad_ventas=models.Sum('cantidad_ventas'),
+                cantidad_devoluciones=models.Sum('cantidad_devoluciones'),
+                cantidad_cancelaciones=models.Sum('cantidad_cancelaciones'),
+                ingresos=models.Sum('ingreso_total'),
+                egresos=models.Sum('egreso_total'),
+                ganancias=models.Sum('ganancia_total'),
+                perdidas=models.Sum('perdida_total'),
+                ticket_promedio_diario=models.Avg('ticket_promedio'),
+            )
+            .order_by('-mes')
+        )
+
+        return Response(reporte)
 
 class ConfiguracionView(generics.RetrieveUpdateAPIView):
     serializer_class = ConfiguracionSerializer
