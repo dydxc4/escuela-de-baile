@@ -1,14 +1,6 @@
 from rest_framework.permissions import BasePermission
 from .models import *
 
-class EsCuotaPagadaAlterable(BasePermission):
-    message = 'No es posible alterar una cuota de un pago finalizado'
-
-    def has_object_permission(self, request, view, obj: CuotaPagada):
-        if request.method in ['DELETE', 'PUT', 'PATCH']:
-            return not obj.pago.estado.es_finalizado()
-        return True
-
 class EsPagoEstudianteAlterable(BasePermission):
     message = 'No es posible alterar un pago finalizado'
 
@@ -34,7 +26,7 @@ class EsClaseAlterable(BasePermission):
         return True
 
 class EsClaseEstudianteAlterable(BasePermission):
-    message = 'No es posible alterar una asistencia a una clase'
+    message = 'No es posible alterar una asistencia a una clase completada'
 
     def has_object_permission(self, request, view, obj: ClaseEstudiante):
         if request.method in ['DELETE', 'PUT', 'PATCH']:

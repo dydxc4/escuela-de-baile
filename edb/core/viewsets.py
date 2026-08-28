@@ -178,7 +178,7 @@ class CuotaViewSet(viewsets.ModelViewSet):
         'concepto',
         'curso__nombre',
     ]
-    ordering_fields = ['costo', 'fecha_limite', 'fecha_registro']
+    ordering_fields = ['costo', 'fecha_registro']
     ordering = ['-fecha_registro']
 
     def get_serializer_class(self):
@@ -196,11 +196,12 @@ class PagoEstudianteViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = PagoEstudianteFilter
     search_fields = [
+        'cuota__concepto'
         'estudiante__nombre',
         'estudiante__apellido_paterno',
         'estudiante__apellido_materno',
     ]
-    ordering_fields = ['total', 'fecha_confirmacion', 'fecha_registro']
+    ordering_fields = ['monto', 'fecha_confirmacion', 'fecha_registro']
     ordering = ['-fecha_registro']
 
     def get_serializer_class(self):
@@ -234,26 +235,6 @@ class PagoInstructorViewSet(viewsets.ModelViewSet):
         elif self.action == 'create':
             return PagoInstructorCreateSerializer
         return PagoInstructorUpdateSerializer
-
-class CuotaPagadaViewSet(viewsets.ModelViewSet):
-    queryset = CuotaPagada.objects.all()
-    http_method_names = ['get', 'post', 'delete', 'head', 'options']
-    permission_classes = [EsCuotaPagadaAlterable]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_class = CuotaPagadaFilter
-    search_fields = [
-        'cuota__concepto'
-        'pago__estudiante__nombre',
-        'pago__estudiante__apellido_paterno',
-        'pago__estudiante__apellido_materno',
-    ]
-    ordering_fields = ['monto', 'pago__fecha_registro']
-    ordering = ['-pago__fecha_registro']
-
-    def get_serializer_class(self):
-        if self.action in ['list', 'retrieve']:
-            return CuotaPagadaReadSerializer
-        return CuotaPagadaWriteSerializer
 
 class DocumentoViewSet(viewsets.ModelViewSet):
     queryset = Documento.objects.all()

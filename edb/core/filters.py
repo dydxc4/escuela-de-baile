@@ -90,19 +90,20 @@ class CuotaFilter(django_filters.FilterSet):
         fields = {
             'tipo': ['exact'],
             'costo': ['lte', 'gte', 'exact'],
-            'fecha_limite': ['lte', 'gte', 'exact'],
             'esta_habilitado': ['exact'],
             'fecha_registro': ['lte', 'gte', 'exact'],
         }
 
 class PagoEstudianteFilter(django_filters.FilterSet):
     estudiante = django_filters.ModelChoiceFilter(queryset=Estudiante.objects.all())
+    cuota = django_filters.ModelChoiceFilter(queryset=Cuota.objects.all())
 
     class Meta:
         model = PagoEstudiante
         fields = {
             'estado': ['exact'],
-            'total': ['lte', 'gte', 'exact'],
+            'monto': ['lte', 'gte', 'exact'],
+            'cuota__tipo': ['exact'],
             'fecha_confirmacion': ['date__lte', 'date__gte', 'date__exact'],
             'fecha_registro': ['date__lte', 'date__gte', 'date__exact'],
         }
@@ -117,20 +118,6 @@ class PagoInstructorFilter(django_filters.FilterSet):
             'esta_confirmado': ['exact'],
             'monto': ['lte', 'gte', 'exact'],
             'fecha_registro': ['date__lte', 'date__gte', 'date__exact'],
-        }
-
-class CuotaPagadaFilter(django_filters.FilterSet):
-    cuota = django_filters.ModelChoiceFilter(queryset=Cuota.objects.all())
-    pago = django_filters.ModelChoiceFilter(queryset=PagoEstudiante.objects.all())
-    estudiante = django_filters.ModelChoiceFilter(field_name='pago__estudiante', queryset=Estudiante.objects.all())
-    curso = django_filters.ModelChoiceFilter(field_name='pago__curso', queryset=Curso.objects.all())
-
-    class Meta:
-        model = CuotaPagada
-        fields = {
-            'cuota__tipo': ['exact'],
-            'pago__estado': ['exact'],
-            'monto': ['lte', 'gte', 'exact'],
         }
 
 class DocumentoFilter(django_filters.FilterSet):

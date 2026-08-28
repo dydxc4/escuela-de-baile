@@ -94,6 +94,14 @@ class Estudiante(Persona):
             return self.RangoEdad.ADOLESCENTE
         return self.RangoEdad.ADULTO
 
+    @property
+    def esta_al_corriente(self):
+        hoy = timezone.now().date()
+        vigencia = self.mensualidades \
+            .aggregate(vigencia=models.Max('fecha_vigencia'))['vigencia']
+
+        return vigencia is not None and vigencia >= hoy
+
     def save(self, *args, **kwargs):
         self.curp = self.curp.upper()
         super().save(*args, **kwargs)
@@ -148,8 +156,16 @@ class Clase(models.Model):
 
     @property
     def cantidad_estudiantes(self):
-        resultado = self.estudiantes.aggregate(cantidad=models.Count('id')).get('cantidad')
-        return resultado if resultado else 0
+        resultado = self.estudiantes \
+            .aggregate(cantidad=models.Count('id'))['cantidad']
+        return resultado or 0
+
+    @property
+    def cantidad_asistencias(self):
+        resultado = self.estudiantes_clase \
+            .filter(asistio=True) \
+            .aggregate(cantidad=models.Count('id'))['cantidad']
+        return resultado or 0
 
     def __str__(self) -> str:
         return f'{self.curso.nombre} - Clase {self.fecha_hora} [{self.estado}]'
@@ -182,7 +198,6 @@ class Cuota(models.Model):
     concepto = models.CharField(max_length=120, unique=True)
     costo = models.DecimalField(max_digits=8, decimal_places=2, validators=[price_validator])
     cantidad_clases = models.PositiveIntegerField(null=True, blank=True)
-    fecha_limite = models.DateField(null=True, blank=True)
     fecha_registro = models.DateTimeField(auto_now_add=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
     esta_habilitado = models.BooleanField(default=True)
@@ -209,22 +224,27 @@ class PagoEstudiante(models.Model):
     estudiante = models.ForeignKey(Estudiante, related_name='pagos', on_delete=models.RESTRICT)
     fecha_registro = models.DateTimeField(auto_now_add=True)
     fecha_confirmacion = models.DateTimeField(null=True, blank=True)
-    total = models.DecimalField(max_digits=8, decimal_places=2, default=0.0)
+    monto = models.DecimalField(max_digits=8, decimal_places=2)
     estado = EnumField(Estado, default=Estado.PENDIENTE)
-    cuotas = models.ManyToManyField(Cuota, related_name='pagos_estudiantes', through='CuotaPagada')
+    cuota = models.ForeignKey(Cuota, related_name='pagos', on_delete=models.RESTRICT)
 
-    @property
-    def cantidad_cuotas(self):
-        resultado = self.cuotas.aggregate(cantidad=models.Count('id')).get('cantidad')
-        return resultado if resultado else 0
+    def clean(self):
+        if self.pk:
+            original = PagoEstudiante.objects.get(pk=self.pk)
+            if original.estado.es_finalizado():
+                raise ValidationError('No es posible modificar una transacción finalizada')
+
+        super().clean()
 
     def save(self, *args, **kwargs):
         if self.estado == PagoEstudiante.Estado.COMPLETADO and not self.fecha_confirmacion:
             self.fecha_confirmacion = timezone.now()
+        if not self.monto:
+            self.monto = self.cuota.costo
         super().save(*args, **kwargs)
 
     def __str__(self) -> str:
-        return f'{self.estudiante} - {self.fecha_registro}: ${self.total}'
+        return f'{self.estudiante} - {self.cuota.concepto} ({self.fecha_registro.date()})'
 
 class PagoInstructor(models.Model):
     instructor = models.ForeignKey(Instructor, related_name='pagos', on_delete=models.RESTRICT)
@@ -239,27 +259,26 @@ class PagoInstructor(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self) -> str:
-        return f'{self.instructor} - {self.fecha_registro}: ${self.monto}'
+        return f'{self.instructor} - {self.salario.concepto} ({self.fecha_registro.date()})'
 
-class CuotaPagada(models.Model):
-    cuota = models.ForeignKey(Cuota, related_name='pagos_cuota', on_delete=models.RESTRICT)
-    pago = models.ForeignKey(PagoEstudiante, related_name='cuotas_pago', on_delete=models.CASCADE)
-    monto = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+class MensualidadPagada(models.Model):
+    estudiante = models.ForeignKey(Estudiante, related_name='mensualidades', on_delete=models.RESTRICT)
+    pago = models.ForeignKey(PagoEstudiante, related_name='pago_estudiantes', on_delete=models.RESTRICT)
+    fecha_vigencia = models.DateField()
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=['cuota', 'pago'], name='unique_cuota_pago'
+                fields=['estudiante', 'pago'], name='unique_estudiante_pago'
             )
         ]
 
-    def save(self, *args, **kwargs):
-        if not self.monto:
-            self.monto = self.cuota.costo
-        super().save(*args, **kwargs)
+    @property
+    def esta_vigente(self):
+        return timezone.now().date() <= self.fecha_vigencia
 
     def __str__(self) -> str:
-        return f'{self.pago} para {self.cuota}'
+        return f'{self.estudiante}: pagada {self.pago.fecha_registro}, vigencia {self.fecha_vigencia}'
 
 class Documento(models.Model):
     estudiante = models.ForeignKey(Estudiante, related_name='documentos', on_delete=models.CASCADE, null=True, blank=True)

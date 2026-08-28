@@ -1,3 +1,4 @@
+from django.db.models import Q
 from rest_framework import serializers
 from .models import *
 
@@ -10,6 +11,17 @@ class SalarioSerializer(serializers.ModelSerializer):
     class Meta:
         model = Salario
         fields = '__all__'
+
+class MensualidadSerializer(serializers.ModelSerializer):
+    fecha_pago = serializers.SerializerMethodField(read_only=True)
+    monto_pago = serializers.DecimalField(source='pago.monto', max_digits=8, decimal_places=2)
+
+    class Meta:
+        model = MensualidadPagada
+        exclude = ['estudiante']
+
+    def get_fecha_pago(self, obj: MensualidadPagada):
+        return (obj.pago.fecha_confirmacion or obj.pago.fecha_registro).date()
 
 class TutorListSerializer(serializers.ModelSerializer):
     class Meta:
@@ -49,6 +61,8 @@ class EstudianteListSerializer(serializers.ModelSerializer):
 class EstudianteSerializer(serializers.ModelSerializer):
     edad = serializers.IntegerField(read_only=True)
     rango_edad = serializers.CharField(read_only=True)
+    mensualidades = MensualidadSerializer(many=True, read_only=True)
+    esta_al_corriente = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = Estudiante
@@ -111,6 +125,7 @@ class ClaseListSerializer(serializers.ModelSerializer):
     nombre_instructor = serializers.CharField(source='instructor.nombre_completo', read_only=True)
     nombre_curso = serializers.CharField(source='curso.nombre', read_only=True)
     cantidad_estudiantes = serializers.IntegerField(read_only=True)
+    cantidad_asistencias = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Clase
@@ -149,10 +164,25 @@ class ClaseEstudianteCreateSerializer(serializers.ModelSerializer):
             raise ValidationError('No es posible alterar una clase completada')
         return value
 
-class ClaseEstudianteUpdateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ClaseEstudiante
-        fields = '__all__'
+    def validate_estudiante(self, value):
+        if value.estado_inscripcion != Estudiante.Estado.ACTIVO:
+            raise ValidationError('No es posible agregar a un estudiante que ha sido dado de baja o tiene pagos pendientes')
+
+        if not value.esta_al_corriente:
+            if value.contador_clases_restantes == 0:
+                raise ValidationError('No es posible agregar a un estudiante que está atrasado con el pago de la mensualidad o ya no tiene clases restantes')
+
+            clases_pendientes = value.clases_estudiante \
+                .filter(~Q(clase__estado=Clase.Estado.COMPLETADA) & Q(asistio=False)) \
+                .count()
+
+            if value.contador_clases_restantes <= clases_pendientes:
+                raise ValidationError('El estudiante ya no posee más clases restantes para inscribirse')
+
+        return value
+
+class ClaseEstudianteUpdateSerializer(ClaseEstudianteCreateSerializer   ):
+    class Meta(ClaseEstudianteCreateSerializer.Meta):
         read_only_fields = ['clase', 'estudiante']
 
 class CuotaListSerializer(serializers.ModelSerializer):
@@ -180,19 +210,11 @@ class CuotaCreateSerializer(serializers.ModelSerializer):
     def validate(self, attrs: dict):
         tipo = attrs.get('tipo')
         cantidad_clases = attrs.get('cantidad_clases')
-        curso = attrs.get('curso')
-        fecha_limite = attrs.get('fecha_limite')
 
         # Comprueba si se establecio el tipo de cuota
         if tipo:
-            # Para mensualidad: requiere de fecha límite
-            if tipo == Cuota.Tipo.MENSUALIDAD and fecha_limite is None:
-                raise ValidationError({'tipo': 'Una cuota de mensualidad debe definir una fecha límite'})
-            # Para inscripción: requiere de un curso
-            elif tipo == Cuota.Tipo.INSCRIPCION and curso is None:
-                raise ValidationError({'tipo': 'Una cuota de inscripción debe asociarse a un curso'})
             # Para clase individual: requiere una sola clase
-            elif tipo == Cuota.Tipo.CLASE_INDIVIDUAL and cantidad_clases is not None and cantidad_clases > 1:
+            if tipo == Cuota.Tipo.CLASE_INDIVIDUAL and cantidad_clases is not None and cantidad_clases > 1:
                 raise ValidationError({'tipo': 'Una cuota de clase no debe contener más de una'})
             # Para paquete de clases: requiere de una cantidad de clases mayor que 1
             elif tipo == Cuota.Tipo.PAQUETE_CLASES:
@@ -209,25 +231,18 @@ class CuotaUpdateSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ['tipo', 'curso']
 
-class PagoEstudianteCuotaSerializer(serializers.ModelSerializer):
-    cuota = CuotaListSerializer(read_only=True)
-
-    class Meta:
-        model = CuotaPagada
-        exclude = ['pago']
-        depth = 1
-
 class PagoEstudianteListSerializer(serializers.ModelSerializer):
     nombre_estudiante = serializers.CharField(source='estudiante.nombre_completo', read_only=True)
-    cantidad_cuotas = serializers.IntegerField(read_only=True)
+    tipo_cuota = serializers.CharField(source='cuota.tipo', read_only=True)
+    concepto_cuota = serializers.CharField(source='cuota.concepto', read_only=True)
 
     class Meta:
         model = PagoEstudiante
-        exclude = ['cuotas']
+        fields = '__all__'
 
 class PagoEstudianteReadSerializer(serializers.ModelSerializer):
     estudiante = EstudianteListSerializer(read_only=True)
-    cuotas = PagoEstudianteCuotaSerializer(source='cuotas_pago', many=True, read_only=True)
+    cuota = CuotaListSerializer(read_only=True)
 
     class Meta:
         model = PagoEstudiante
@@ -238,13 +253,36 @@ class PagoEstudianteCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = PagoEstudiante
         fields = '__all__'
-        read_only_fields = ['total']
+        read_only_fields = ['monto']
 
-class PagoEstudianteUpdateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PagoEstudiante
-        fields = '__all__'
-        read_only_fields = ['estudiante', 'total']
+    def validate_cuota(self, value: Cuota):
+        if not value.esta_habilitado:
+            raise ValidationError('No es posible realizar el pago de una cuota deshabilitada')
+        return value
+
+    def validate(self, attrs: dict):
+        cuota = attrs.get('cuota', self.instance.cuota if self.instance else None)
+        estudiante = attrs.get('estudiante', self.instance.estudiante if self.instance else None)
+
+        # Validación de pago de mensualidad
+        if cuota and estudiante and cuota.tipo == Cuota.Tipo.MENSUALIDAD:
+            # Verifica si el rango de edad del estudiante corresponde a un adulto
+            if estudiante.rango_edad == Estudiante.RangoEdad.ADULTO:
+                raise ValidationError({'estudiante': 'Un estudiante adulto no puede pagar por mensualidad'})
+
+            # Verifica si ya se asocio el pago actual con una mensualidad
+            cantidad = MensualidadPagada.objects \
+                .filter(estudiante=estudiante, pago=self.instance) \
+                .count()
+
+            if cantidad > 0:
+                raise ValidationError({'cuota': 'No es posible agregar una cuota previamente pagada'})
+
+        return attrs
+
+class PagoEstudianteUpdateSerializer(PagoEstudianteCreateSerializer):
+    class Meta(PagoEstudianteCreateSerializer.Meta):
+        read_only_fields = ['cuota', 'estudiante', 'monto']
 
 class PagoInstructorListSerializer(serializers.ModelSerializer):
     nombre_instructor = serializers.CharField(source='instructor.nombre_completo', read_only=True)
@@ -273,26 +311,6 @@ class PagoInstructorUpdateSerializer(serializers.ModelSerializer):
         model = PagoInstructor
         fields = '__all__'
         read_only_fields = ['instructor', 'salario', 'monto']
-
-class CuotaPagadaReadSerializer(serializers.ModelSerializer):
-    pago = PagoEstudianteListSerializer(read_only=True)
-    cuota = CuotaListSerializer(read_only=True)
-
-    class Meta:
-        model = CuotaPagada
-        fields = '__all__'
-        depth = 1
-
-class CuotaPagadaWriteSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CuotaPagada
-        fields = '__all__'
-        read_only_fields = ['monto']
-
-    def validate_pago(self, value: PagoEstudiante):
-        if value.estado.es_finalizado():
-            raise ValidationError('No es posible alterar un pago finalizado')
-        return value
 
 class DocumentoReadSerializer(serializers.ModelSerializer):
     tamanio = serializers.SerializerMethodField()
