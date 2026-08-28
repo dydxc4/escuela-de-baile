@@ -1,7 +1,8 @@
-from django.db.models import Sum, Q
-from django.db.models.signals import post_save, pre_save
-from django.dispatch import receiver
+import os
 from dateutil.relativedelta import relativedelta
+from django.db.models import Sum, Q
+from django.db.models.signals import post_save, pre_save, post_delete
+from django.dispatch import receiver
 from .models import *
 
 def increment_contador(estudiante: Estudiante, incremento):
@@ -80,3 +81,8 @@ def substract_contador_clases_trigger(sender, instance: ClaseEstudiante, **kwarg
     if not estudiante.esta_al_corriente and estudiante.contador_clases_restantes > 0 and instance.asistio:
         estudiante.contador_clases_restantes-=1
         estudiante.save(update_fields=['contador_clases_restantes'])
+
+@receiver(post_delete, sender=Documento)
+def delete_documento_trigger(sender, instance: Documento, **kwargs):
+    if instance.archivo and (instance.archivo.path):
+        os.remove(instance.archivo.path)
