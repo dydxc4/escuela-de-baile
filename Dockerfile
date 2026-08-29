@@ -16,7 +16,6 @@ RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY edb /app/
-COPY entrypoint.sh /app/
 RUN chmod +x /app/entrypoint.sh
 
 EXPOSE 8000
