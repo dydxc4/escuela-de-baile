@@ -30,6 +30,8 @@ El sitio es accesible a través del localhost en el puerto 8000; Adminer, puerto
 
 El servidor puede iniciarse y detenerse usando los comandos `docker compose start` y `docker compose stop`. Las migraciones se aplican automaticamente a crear una nueva imagen.
 
+Para habilitar el acceso externo al servidor, cambiar la dirección IP enlazada al contenedor edb-backend por `0.0.0.0` en el archivo `docker-compose.yml`.
+
 **URLS:**
 
 - Django Admin: `http://localhost:8000/admin/`

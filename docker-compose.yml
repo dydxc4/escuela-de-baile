@@ -7,7 +7,7 @@ services:
     volumes:
       - edb-documents:/app/documents # Directorio para los documentos
     ports:
-      - "127.0.0.1:8000:8000"
+      - "127.0.0.1:8000:8000" # Cambiar a 0.0.0.0:8000:8000 para permitir el acceso externo
     networks:
       - edb-network
     depends_on:
