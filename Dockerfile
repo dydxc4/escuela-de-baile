@@ -15,9 +15,14 @@ COPY requirements.txt /app/
 RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Copia el proyecto Django/Python
 COPY edb /app/
-COPY entrypoint.sh /app/
-RUN chmod +x /app/entrypoint.sh
+
+# Copia explícitamente el script de entrada desde la raíz
+COPY entrypoint.sh /app/entrypoint.sh
+
+# Corrige formatos de línea Windows (CRLF a LF) y otorga permisos de ejecución
+RUN sed -i 's/\r$//' /app/entrypoint.sh && chmod +x /app/entrypoint.sh
 
 EXPOSE 8000
 
