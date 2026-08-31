@@ -317,7 +317,7 @@ class Configuracion(models.Model):
     edad_max_ninio = models.PositiveSmallIntegerField(default=12)
     edad_min_adulto = models.PositiveSmallIntegerField(default=18)
     margen_antes_fin_vigencia = models.PositiveSmallIntegerField(default=10)
-    intervalo_comprobacion = models.PositiveIntegerField(default=24)
+    modo_oscuro = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
         self.pk = 1

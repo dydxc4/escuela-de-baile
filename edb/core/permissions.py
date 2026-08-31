@@ -5,7 +5,12 @@ class EsPagoEstudianteAlterable(BasePermission):
     message = 'No es posible alterar un pago finalizado'
 
     def has_object_permission(self, request, view, obj: PagoEstudiante):
-        if request.method in ['DELETE', 'PUT', 'PATCH']:
+        if request.method in ['PUT', 'PATCH']:
+            return obj.estado not in [
+                PagoEstudiante.Estado.CANCELADO,
+                PagoEstudiante.Estado.DEVUELTO,
+            ]
+        elif request.method == 'DELETE':
             return not obj.estado.es_finalizado()
         return True
 

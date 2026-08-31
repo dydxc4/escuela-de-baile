@@ -28,6 +28,15 @@ def set_mensualidad(pago: PagoEstudiante):
     estudiante.estado_inscripcion = Estudiante.Estado.ACTIVO
     estudiante.save(update_fields=['estado_inscripcion'])
 
+def decrement_contador(estudiante: Estudiante, decremento):
+    nueva_cantidad = max(estudiante.contador_clases_restantes - decremento, 0)
+    estudiante.contador_clases_restantes = nueva_cantidad
+    estudiante.save(update_fields=['contador_clases_restantes'])
+
+def unset_mensualidad(pago: PagoEstudiante):
+    mensualidad = MensualidadPagada.objects.get(pago=pago)
+    mensualidad.delete()
+
 @receiver(pre_save, sender=PagoEstudiante)
 @receiver(pre_save, sender=PagoInstructor)
 def update_registro_transacciones_trigger(sender, instance, **kwargs):
@@ -48,10 +57,10 @@ def update_registro_salarios_trigger(sender, instance: PagoInstructor, **kwargs)
 def update_contador_clases_trigger(sender, instance: PagoEstudiante, **kwargs):
     # Obtiene el registro de la fecha actual
     registro = RegistroDiario.load()
+    estudiante = instance.estudiante
 
     # Si se marca el pago como completado
     if instance.estado == PagoEstudiante.Estado.COMPLETADO:
-        estudiante = instance.estudiante
         # Si se pago por una clase individual
         if instance.cuota.tipo == Cuota.Tipo.CLASE_INDIVIDUAL:
             increment_contador(estudiante, 1)
@@ -68,9 +77,21 @@ def update_contador_clases_trigger(sender, instance: PagoEstudiante, **kwargs):
         registro.ticket_promedio = registro.ingreso_total / registro.cantidad_ventas
         registro.save(update_fields=['ingreso_total', 'cantidad_ventas', 'ticket_promedio', 'ganancia_total'])
     elif instance.estado == PagoEstudiante.Estado.DEVUELTO:
+        # Si se pago por una clase individual
+        if instance.cuota.tipo == Cuota.Tipo.CLASE_INDIVIDUAL:
+            decrement_contador(estudiante, 1)
+        # Si se pago por un paquete de clases
+        elif instance.cuota.tipo in [Cuota.Tipo.PAQUETE_CLASES, Cuota.Tipo.INSCRIPCION] and \
+            instance.cuota.cantidad_clases:
+            decrement_contador(estudiante, instance.cuota.cantidad_clases)
+        # Si se pago por una mensualidad
+        elif instance.cuota.tipo == Cuota.Tipo.MENSUALIDAD:
+            unset_mensualidad(instance)
+
         registro.cantidad_devoluciones += 1
+        registro.egreso_total += instance.monto
         registro.perdida_total += instance.monto
-        registro.save(update_fields=['cantidad_devoluciones', 'perdida_total', 'ganancia_total'])
+        registro.save(update_fields=['cantidad_devoluciones', 'egreso_total', 'perdida_total', 'ganancia_total'])
     elif instance.estado == PagoEstudiante.Estado.CANCELADO:
         registro.cantidad_cancelaciones += 1
         registro.perdida_total += instance.monto

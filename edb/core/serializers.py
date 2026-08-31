@@ -279,6 +279,11 @@ class PagoEstudianteCreateSerializer(serializers.ModelSerializer):
             raise ValidationError('No es posible realizar el pago de una cuota deshabilitada')
         return value
 
+    def validate_estado(self, value: PagoEstudiante.Estado):
+        if value in [PagoEstudiante.Estado.DEVUELTO, PagoEstudiante.Estado.CANCELADO]:
+            raise ValidationError('No es posible registrar un pago marcado como devuelto o cancelado')
+        return value
+
     def validate(self, attrs: dict):
         cuota = attrs.get('cuota', self.instance.cuota if self.instance else None)
         estudiante = attrs.get('estudiante', self.instance.estudiante if self.instance else None)
@@ -299,9 +304,18 @@ class PagoEstudianteCreateSerializer(serializers.ModelSerializer):
 
         return attrs
 
-class PagoEstudianteUpdateSerializer(PagoEstudianteCreateSerializer):
-    class Meta(PagoEstudianteCreateSerializer.Meta):
+class PagoEstudianteUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PagoEstudiante
+        fields = '__all__'
         read_only_fields = ['cuota', 'estudiante', 'monto']
+
+    def validate_estado(self, value: PagoEstudiante.Estado):
+        estado_anterior = self.instance.estado
+        if estado_anterior == PagoEstudiante.Estado.COMPLETADO and \
+            value != PagoEstudiante.Estado.DEVUELTO:
+            raise ValidationError('No es posible cambiar el estado de un pago completado a otro distinto de devolución')
+        return value
 
 class PagoInstructorListSerializer(serializers.ModelSerializer):
     nombre_instructor = serializers.CharField(source='instructor.nombre_completo', read_only=True)
@@ -383,7 +397,6 @@ class ConfiguracionSerializer(serializers.ModelSerializer):
     edad_max_ninio = serializers.IntegerField(min_value=2, max_value=18, default=12)
     edad_min_adulto = serializers.IntegerField(min_value=10, max_value=120, default=18)
     margen_antes_fin_vigencia = serializers.IntegerField(max_value=21, default=10)
-    intervalo_comprobacion = serializers.IntegerField(max_value=168, default=24)
 
     class Meta:
         model = Configuracion
