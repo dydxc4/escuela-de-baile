@@ -1,7 +1,10 @@
 from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
 from rest_framework import urls
 from rest_framework.routers import DefaultRouter
 from .viewsets import *
+from .views import *
 
 router = DefaultRouter()
 
@@ -26,4 +29,10 @@ urlpatterns = [
     path('registros/semana', RegistroSemanalView.as_view(), name='registros_semana'),
     path('registros/mes', RegistroMensualView.as_view(), name='registros_mes'),
     path('configuracion', ConfiguracionView.as_view(), name='configuracion'),
+    path('reporte/mensual', GenerarReporteMensualView.as_view(), name="generar_reporte_mensual"),
+    path('reporte/mensual/enviar', EnviarReporteMensualView.as_view(), name="enviar_reporte_mensual"),
+    path('reporte/semanal', GenerarReporteSemanalView.as_view(), name="generar_reporte_semanal"),
+    path('reporte/semanal/enviar', EnviarReporteSemanalView.as_view(), name="enviar_reporte_semanal"),
+    path('generar-reporte-semanal', reporte_semanal_html, name='reporte_semanal_index'),
+    path('generar-reporte-mensual', reporte_mensual_html, name='reporte_mensual_index'),
 ]

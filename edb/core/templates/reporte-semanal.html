@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte Semanal</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            color: #333333;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #2c3e50;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 24px;
+        }
+        .header p {
+            margin: 5px 0 0 0;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        /* Estructura del Tablero de Indicadores */
+        .kpi-table {
+            width: 100%;
+            margin-bottom: 30px;
+            border-collapse: separate;
+            border-spacing: 15px 0;
+        }
+        .kpi-box {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            padding: 15px;
+            text-align: center;
+            width: 25%;
+        }
+        .kpi-value {
+            font-size: 22px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .kpi-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #95a5a6;
+            letter-spacing: 1px;
+        }
+        /* Tablas de Desglose */
+        h2 {
+            font-size: 16px;
+            color: #2c3e50;
+            border-bottom: 1px solid #ecf0f1;
+            padding-bottom: 5px;
+            margin-top: 30px;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        .data-table th, .data-table td {
+            border-bottom: 1px solid #ecf0f1;
+            padding: 10px 5px;
+            text-align: left;
+        }
+        .data-table th {
+            color: #7f8c8d;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .text-right {
+            text-align: right !important;
+        }
+        .efectividad {
+            text-align: center;
+            font-size: 14px;
+            margin-top: 30px;
+            padding: 10px;
+            background-color: #e8f6f3;
+            color: #1abc9c;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Reporte Financiero Semanal</h1>
+        <p>Periodo de Evaluación: {{ rango }}</p>
+    </div>
+
+    <!-- Tablero de Indicadores Principal -->
+    <table class="kpi-table">
+        <tr>
+            <td class="kpi-box">
+                <div class="kpi-label">Cantidad Ventas</div>
+                <div class="kpi-value">{{ resumen.cantidad_ventas }}</div>
+            </td>
+            <td class="kpi-box">
+                <div class="kpi-label">Ingreso Total</div>
+                <div class="kpi-value">${{ resumen.ingreso_total|floatformat:2 }}</div>
+            </td>
+            <td class="kpi-box">
+                <div class="kpi-label">Egreso Total</div>
+                <div class="kpi-value">${{ resumen.egreso_total|floatformat:2 }}</div>
+            </td>
+            <td class="kpi-box">
+                <div class="kpi-label">Ticket promedio</div>
+                <div class="kpi-value">${{ resumen.ticket_promedio|floatformat:2 }}</div>
+            </td>
+        </tr>
+    </table>
+
+    <!-- Desglose de Ventas -->
+    <h2>Desglose de Ventas Efectuadas</h2>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Concepto / Cuota</th>
+                <th>Estudiante</th>
+                <th class="text-right">Monto</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for venta in ventas %}
+            <tr>
+                <td>{{ venta.fecha_registro }}</td>
+                <td>{{ venta.cuota__concepto }}</td>
+                <td>{{ venta.nombre_estudiante }}</td>
+                <td class="text-right">${{ venta.monto|floatformat:2 }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="2">No se registraron ingresos en este periodo.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Desglose de Ventas -->
+    <h2>Desglose de Ventas Canceladas / Devueltas</h2>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Concepto / Cuota</th>
+                <th>Estudiante</th>
+                <th>Estado</th>
+                <th class="text-right">Monto</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for venta in alertas %}
+            <tr>
+                <td>{{ venta.fecha_registro }}</td>
+                <td>{{ venta.cuota__concepto }}</td>
+                <td>{{ venta.nombre_estudiante }}</td>
+                <td>{{ venta.estado }}</td>
+                <td class="text-right">${{ venta.monto|floatformat:2 }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="2">No se registraron cancelaciones en este periodo.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Desglose de Nómina -->
+    <h2>Desglose de Nómina Operativa</h2>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Instructor</th>
+                <th>Concepto de Salario</th>
+                <th class="text-right">Monto Pagado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for nomina in salarios %}
+            <tr>
+                <td>{{ nomina.fecha_registro }}</td>
+                <td>{{ nomina.nombre_instructor }}</td>
+                <td>{{ nomina.salario__concepto }}</td>
+                <td class="text-right">${{ nomina.monto|floatformat:2 }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="3">No se emitieron pagos de nómina en este periodo.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="efectividad">
+        <strong>Balance Neto:</strong> ${{ resumen.balance_neto }}
+    </div>
+
+</body>
+</html>
