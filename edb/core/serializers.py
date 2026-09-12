@@ -397,9 +397,13 @@ class DocumentoUpdateSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'estudiante', 'instructor', 'pago', 'archivo']
 
 class ConfiguracionSerializer(serializers.ModelSerializer):
-    edad_max_ninio = serializers.IntegerField(min_value=2, max_value=18, default=12)
-    edad_min_adulto = serializers.IntegerField(min_value=10, max_value=120, default=18)
-    margen_antes_fin_vigencia = serializers.IntegerField(max_value=21, default=10)
+    edad_max_ninio = serializers.IntegerField(min_value=2, max_value=18, default=12, label='Edad máxima niño')
+    edad_min_adulto = serializers.IntegerField(min_value=10, max_value=120, default=18, label='Edad mínima adulto')
+    margen_antes_fin_vigencia = serializers.IntegerField(max_value=21, default=10, label='Margen antes de fin de vigencia')
+    emails_destinatarios = serializers.ListField(
+        child=serializers.EmailField(),
+        allow_empty=False,
+    )
 
     class Meta:
         model = Configuracion

@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM python:3.14.7-slim
+FROM python:3.14-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
@@ -8,7 +8,7 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR /app
 
 RUN apt-get update \
-    && apt-get install -y default-libmysqlclient-dev build-essential pkg-config curl \
+    && apt-get install -y default-libmysqlclient-dev build-essential pkg-config curl weasyprint \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt /app/

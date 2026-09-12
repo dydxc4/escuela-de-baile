@@ -318,6 +318,7 @@ class Configuracion(models.Model):
     edad_min_adulto = models.PositiveSmallIntegerField(default=18)
     margen_antes_fin_vigencia = models.PositiveSmallIntegerField(default=10)
     modo_oscuro = models.BooleanField(default=False)
+    emails_destinatarios = models.JSONField(default=list)
 
     def save(self, *args, **kwargs):
         self.pk = 1

@@ -13,11 +13,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    environment:
-      - DB_HOST=db
-      - DB_NAME=edb
-      - DB_USER=root
-      - DB_PASS=edb-root-pwd
+    env_file: ".env"
   db:
     image: mysql:lts
     container_name: edb-db
@@ -29,6 +25,8 @@ services:
       MYSQL_DATABASE: 'edb'
     volumes:
       - edb-db:/var/lib/mysql
+    ports:
+      - 127.0.0.1:3306:3306
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 5s
