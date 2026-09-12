@@ -315,6 +315,9 @@ class PagoEstudianteUpdateSerializer(serializers.ModelSerializer):
         if estado_anterior == PagoEstudiante.Estado.COMPLETADO and \
             value != PagoEstudiante.Estado.DEVUELTO:
             raise ValidationError('No es posible cambiar el estado de un pago completado a otro distinto de devolución')
+        elif estado_anterior in [PagoEstudiante.Estado.PENDIENTE, PagoEstudiante.Estado.POR_CONFIRMAR] and \
+            value == PagoEstudiante.Estado.DEVUELTO:
+            raise ValidationError('No es posible marcar como devuelto un pago pendiente o por confirmar')
         return value
 
 class PagoInstructorListSerializer(serializers.ModelSerializer):
